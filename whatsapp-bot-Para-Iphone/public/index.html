@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍽️ Bot Restaurante - Panel de Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .status-conectado {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-desconectado {
+            background: #ef4444;
+            color: white;
+        }
+
+        .status-esperando {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+            background: #f3f4f6;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        #qrcode {
+            margin: 0 auto;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .qr-placeholder {
+            color: #6b7280;
+            padding: 40px;
+            font-size: 1.1em;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            margin: 8px 0;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .info-value {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .users-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .user-item {
+            padding: 12px;
+            margin: 8px 0;
+            background: #f9fafb;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-phone {
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .user-time {
+            font-size: 0.85em;
+            color: #6b7280;
+        }
+
+        .cooldown-badge {
+            background: #fbbf24;
+            color: #78350f;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.85em;
+            width: auto;
+            margin: 0;
+        }
+
+        .settings-group {
+            margin: 15px 0;
+        }
+
+        .settings-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-weight: bold;
+        }
+
+        .settings-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .settings-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .log-container {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ Bot de Restaurante</h1>
+            <p>Panel de Control - WhatsApp Business</p>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <div class="grid">
+            <!-- Estado del Bot -->
+            <div class="card">
+                <h2>📊 Estado del Bot</h2>
+                <div class="info-row">
+                    <span class="info-label">Estado:</span>
+                    <span id="status" class="status-badge status-desconectado">Desconectado</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Restaurante:</span>
+                    <span id="restaurante" class="info-value">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Cooldown:</span>
+                    <span id="cooldown" class="info-value">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Mensajes procesados:</span>
+                    <span id="mensajes" class="info-value">0</span>
+                </div>
+                <button class="btn btn-primary" onclick="actualizarEstado()">
+                    🔄 Actualizar Estado
+                </button>
+            </div>
+
+            <!-- Código QR -->
+            <div class="card">
+                <h2>📱 Conexión WhatsApp</h2>
+                <div class="qr-container">
+                    <div id="qrcode">
+                        <div class="qr-placeholder">
+                            Esperando código QR...
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="forzarReconexion()">
+                    🔄 Forzar Nueva Conexión
+                </button>
+                <button class="btn btn-warning" onclick="cerrarSesion()">
+                    🔓 Cerrar Sesión Actual
+                </button>
+                <button class="btn btn-danger" onclick="limpiarSesion()">
+                    🗑️ Limpiar y Usar Otro WhatsApp
+                </button>
+            </div>
+
+            <!-- Usuarios en Cooldown -->
+            <div class="card">
+                <h2>⏰ Usuarios en Cooldown</h2>
+                <div class="users-list" id="usersList">
+                    <p style="text-align: center; color: #6b7280; padding: 20px;">
+                        No hay usuarios en cooldown
+                    </p>
+                </div>
+                <button class="btn btn-warning" onclick="resetearTodosCooldowns()">
+                    🔄 Resetear Todos los Cooldowns
+                </button>
+            </div>
+
+            <!-- Configuración -->
+            <div class="card">
+                <h2>⚙️ Configuración</h2>
+                <div class="settings-group">
+                    <label>Cooldown (minutos):</label>
+                    <input type="number" id="cooldownInput" value="30" min="1" max="1440">
+                </div>
+                <div class="settings-group">
+                    <label>Nombre del Restaurante:</label>
+                    <input type="text" id="nombreRestaurante" value="Tu Restaurante">
+                </div>
+                <div class="settings-group">
+                    <label>Teléfono:</label>
+                    <input type="text" id="telefono" value="+57 XXX XXX XXXX">
+                </div>
+                <button class="btn btn-success" onclick="guardarConfiguracion()">
+                    💾 Guardar Configuración
+                </button>
+                <p style="font-size: 0.85em; color: #6b7280; margin-top: 10px;">
+                    ⚠️ Reinicia el bot para aplicar los cambios
+                </p>
+            </div>
+
+            <!-- Logs en tiempo real -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <h2>📋 Logs del Sistema</h2>
+                <div class="log-container" id="logs">
+                    <div class="log-entry">Sistema iniciado...</div>
+                </div>
+                <button class="btn btn-primary" onclick="limpiarLogs()">
+                    🧹 Limpiar Logs
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+         const API_URL = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3000' 
+        : `http://${window.location.hostname}:3000`;
+        let qrCodeInstance = null;
+
+        // Mostrar alerta
+        function mostrarAlerta(mensaje, tipo = 'success') {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${tipo}`;
+            alert.textContent = mensaje;
+            alert.style.display = 'block';
+            container.appendChild(alert);
+
+            setTimeout(() => {
+                alert.style.display = 'none';
+                alert.remove();
+            }, 5000);
+        }
+
+        // Agrega log
+        function agregarLog(mensaje) {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString('es-CO');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `[${timestamp}] ${mensaje}`;
+            logs.insertBefore(entry, logs.firstChild);
+
+            // Mantener solo los últimos 50 logs
+            while (logs.children.length > 50) {
+                logs.removeChild(logs.lastChild);
+            }
+        }
+
+        // Actualizar estado del bot
+        async function actualizarEstado() {
+            try {
+                const response = await fetch(`${API_URL}/status`);
+                const data = await response.json();
+
+                // Actualizar estado
+                const statusEl = document.getElementById('status');
+                statusEl.textContent = data.status === 'conectado' ? 'Conectado ✅' : 'Desconectado ❌';
+                statusEl.className = `status-badge ${data.status === 'conectado' ? 'status-conectado' : 'status-desconectado'}`;
+
+                document.getElementById('restaurante').textContent = data.restaurante || '-';
+                document.getElementById('cooldown').textContent = `${data.cooldownMinutos || 0} minutos`;
+                document.getElementById('mensajes').textContent = data.mensajesProcesados || 0;
+
+                // Actualizar lista de usuarios
+                actualizarListaUsuarios(data.usuariosEnCooldown || []);
+
+                agregarLog('Estado actualizado correctamente');
+            } catch (error) {
+                agregarLog('❌ Error al actualizar estado: ' + error.message);
+                mostrarAlerta('Error al conectar con el servidor', 'error');
+            }
+        }
+
+        // Actualizar lista de usuarios en cooldown
+        function actualizarListaUsuarios(usuarios) {
+            const usersList = document.getElementById('usersList');
+            
+            if (usuarios.length === 0) {
+                usersList.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 20px;">No hay usuarios en cooldown</p>';
+                return;
+            }
+
+            usersList.innerHTML = '';
+            usuarios.forEach(user => {
+                const userItem = document.createElement('div');
+                userItem.className = 'user-item';
+                
+                const puedeResponder = user.minutosRestantes === 0;
+                
+                userItem.innerHTML = `
+                    <div class="user-info">
+                        <div class="user-phone">📱 ${user.telefono}</div>
+                        <div class="user-time">Última respuesta: ${user.ultimaRespuesta}</div>
+                    </div>
+                    ${!puedeResponder ? `<span class="cooldown-badge">⏳ ${user.minutosRestantes} min</span>` : ''}
+                    <button class="btn btn-warning btn-small" onclick="resetearCooldown('${user.telefono}')">
+                        🔄 Resetear
+                    </button>
+                `;
+                
+                usersList.appendChild(userItem);
+            });
+        }
+
+        // Resetear cooldown de un usuario
+        async function resetearCooldown(telefono) {
+            try {
+                const response = await fetch(`${API_URL}/reset-cooldown/${telefono}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                mostrarAlerta(`Cooldown reseteado para ${telefono}`, 'success');
+                agregarLog(`Cooldown reseteado: ${telefono}`);
+                actualizarEstado();
+            } catch (error) {
+                mostrarAlerta('Error al resetear cooldown', 'error');
+                agregarLog('❌ Error al resetear cooldown: ' + error.message);
+            }
+        }
+
+        // Resetear todos los cooldowns
+        async function resetearTodosCooldowns() {
+            if (!confirm('¿Estás seguro de resetear TODOS los cooldowns?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/reset-all-cooldowns`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                mostrarAlerta(data.message, 'success');
+                agregarLog('Todos los cooldowns reseteados');
+                actualizarEstado();
+            } catch (error) {
+                mostrarAlerta('Error al resetear cooldowns', 'error');
+                agregarLog('❌ Error: ' + error.message);
+            }
+        }
+
+        // Forzar reconexión
+        async function forzarReconexion() {
+            // Primero verificar si ya está conectado
+            try {
+                const statusResponse = await fetch(`${API_URL}/status`);
+                const statusData = await statusResponse.json();
+                
+                if (statusData.status === 'conectado') {
+                    mostrarAlerta('❌ Ya estás conectado a WhatsApp. No es necesario reconectar.', 'error');
+                    agregarLog('⚠️ Reconexión cancelada - Ya está conectado');
+                    return;
+                }
+            } catch (e) {
+                // Continuar si hay error al verificar estado
+            }
+            
+            if (!confirm('¿Forzar una nueva conexión? Esto puede ayudar si el QR no aparece.')) return;
+
+            try {
+                mostrarAlerta('Forzando reconexión...', 'info');
+                agregarLog('Solicitando reconexión al servidor...');
+                
+                const response = await fetch(`${API_URL}/force-reconnect`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.connected) {
+                    mostrarAlerta('❌ Ya estás conectado a WhatsApp.', 'error');
+                    agregarLog('⚠️ Ya conectado - No se generó nuevo QR');
+                    return;
+                }
+                
+                mostrarAlerta('✅ Reconexión iniciada. El QR aparecerá en unos segundos.', 'success');
+                agregarLog('✅ Reconexión forzada');
+                
+                document.getElementById('qrcode').innerHTML = '<div class="qr-placeholder">⏳ Generando QR...</div>';
+                
+                // Actualizar frecuentemente por 10 segundos
+                let contador = 0;
+                const intervalo = setInterval(() => {
+                    obtenerQR();
+                    contador++;
+                    if (contador >= 10) clearInterval(intervalo);
+                }, 1000);
+                
+            } catch (error) {
+                mostrarAlerta('Error al forzar reconexión', 'error');
+                agregarLog('❌ Error: ' + error.message);
+            }
+        }
+
+        // Cerrar sesión actual
+        async function cerrarSesion() {
+            if (!confirm('¿Cerrar la sesión actual de WhatsApp?')) return;
+
+            try {
+                mostrarAlerta('Cerrando sesión...', 'info');
+                const response = await fetch(`${API_URL}/logout`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                mostrarAlerta('✅ Sesión cerrada. Generando nuevo QR en 2 segundos...', 'success');
+                agregarLog('Sesión cerrada - Esperando nuevo QR');
+                
+                // Esperar y actualizar
+                setTimeout(() => {
+                    obtenerQR();
+                    actualizarEstado();
+                }, 3000);
+            } catch (error) {
+                mostrarAlerta('Error al cerrar sesión', 'error');
+                agregarLog('❌ Error: ' + error.message);
+            }
+        }
+
+        // Limpiar sesión y usar otro WhatsApp
+        async function limpiarSesion() {
+            if (!confirm('⚠️ Esto eliminará la sesión actual y permitirá conectar otro WhatsApp. ¿Continuar?')) return;
+
+            try {
+                mostrarAlerta('Limpiando sesión...', 'info');
+                agregarLog('Limpiando sesión actual...');
+                
+                const response = await fetch(`${API_URL}/clear-session`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                mostrarAlerta('✅ ' + data.message, 'success');
+                agregarLog('✅ Sesión limpiada - Generando nuevo QR');
+                
+                // Limpiar el QR actual
+                document.getElementById('qrcode').innerHTML = '<div class="qr-placeholder">⏳ Generando nuevo QR...</div>';
+                
+                // Actualizar QR y estado cada segundo durante 10 segundos
+                let intentos = 0;
+                const intervalo = setInterval(() => {
+                    obtenerQR();
+                    actualizarEstado();
+                    intentos++;
+                    
+                    if (intentos >= 10) {
+                        clearInterval(intervalo);
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                mostrarAlerta('Error al limpiar sesión', 'error');
+                agregarLog('❌ Error: ' + error.message);
+            }
+        }
+
+        // Guardar configuración
+        function guardarConfiguracion() {
+            const cooldown = document.getElementById('cooldownInput').value;
+            const nombre = document.getElementById('nombreRestaurante').value;
+            const telefono = document.getElementById('telefono').value;
+
+            localStorage.setItem('bot_config', JSON.stringify({
+                cooldown,
+                nombre,
+                telefono
+            }));
+
+            mostrarAlerta('Configuración guardada. Reinicia el bot para aplicar los cambios.', 'info');
+            agregarLog('Configuración guardada localmente');
+        }
+
+        // Cargar configuración
+        function cargarConfiguracion() {
+            const config = localStorage.getItem('bot_config');
+            if (config) {
+                const data = JSON.parse(config);
+                document.getElementById('cooldownInput').value = data.cooldown || 30;
+                document.getElementById('nombreRestaurante').value = data.nombre || 'Tu Restaurante';
+                document.getElementById('telefono').value = data.telefono || '+57 XXX XXX XXXX';
+            }
+        }
+
+        // Limpiar logs
+        function limpiarLogs() {
+            document.getElementById('logs').innerHTML = '<div class="log-entry">Logs limpiados...</div>';
+        }
+
+        // Obtener QR code
+        let ultimoQR = null;
+        let ultimoEstadoConectado = null;
+        
+        async function obtenerQR() {
+            try {
+                const response = await fetch(`${API_URL}/qr`);
+                const data = await response.json();
+
+                const qrContainer = document.getElementById('qrcode');
+
+                if (data.connected) {
+                    // YA ESTÁ CONECTADO - No mostrar QR
+                    ultimoQR = null;
+                    if (ultimoEstadoConectado !== true) {
+                        qrContainer.innerHTML = '<div class="qr-placeholder" style="color: #10b981;">✅ WhatsApp Conectado</div>';
+                        ultimoEstadoConectado = true;
+                    }
+                } else if (data.qr && data.qr !== ultimoQR) {
+                    // NUEVO QR DISPONIBLE
+                    ultimoQR = data.qr;
+                    ultimoEstadoConectado = false;
+                    qrContainer.innerHTML = '';
+                    
+                    // Usar QRCode.js para generar el QR
+                    new QRCode(qrContainer, {
+                        text: data.qr,
+                        width: 256,
+                        height: 256,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                    
+                    agregarLog('✅ Código QR generado - Escanéalo con WhatsApp');
+                    mostrarAlerta('✅ Nuevo código QR disponible. Escanéalo con tu WhatsApp.', 'success');
+                } else if (!data.qr && !data.connected && ultimoEstadoConectado !== false) {
+                    // ESPERANDO QR
+                    ultimoEstadoConectado = false;
+                    qrContainer.innerHTML = '<div class="qr-placeholder">⏳ Esperando código QR...</div>';
+                }
+            } catch (error) {
+                // Silenciar errores si el servidor no está listo
+                console.log('Esperando servidor...');
+            }
+        }
+
+        // Inicializar
+        window.onload = function() {
+            agregarLog('Panel de control iniciado');
+            cargarConfiguracion();
+            actualizarEstado();
+            obtenerQR();
+
+            // Actualizar estado cada 5 segundos
+            setInterval(actualizarEstado, 5000);
+            
+            // Actualizar QR con lógica inteligente
+            let contadorQR = 0;
+            setInterval(() => {
+                contadorQR++;
+                // Si está conectado, actualizar cada 15 segundos (cada 5 ciclos)
+                // Si no está conectado, actualizar cada 3 segundos
+                
+                if (ultimoEstadoConectado === true) {
+                    // Ya conectado, actualizar menos frecuente
+                    if (contadorQR % 5 === 0) {
+                        obtenerQR();
+                    }
+                } else {
+                    // Desconectado o esperando QR, actualizar más frecuente
+                    obtenerQR();
+                }
+            }, 3000);
+        };
+    </script>
+</body>
+</html>
