@@ -112,7 +112,7 @@ const IPHONES = `📱 *Estos son los iPhones que tenemos:*
 Escribe el número del que te interesa o escribe *0* para volver al menú`;
 
 // 🎯 MENÚ PRINCIPAL
-const MENU_PRINCIPAL = `Soy Johana puedo ayudar? 😊
+const MENU_PRINCIPAL = `Soy Johana en que puedo ayudarte? 😊
 
 1. Ver iPhones disponibles 📱
 2. Ubicación de la tienda 📍
