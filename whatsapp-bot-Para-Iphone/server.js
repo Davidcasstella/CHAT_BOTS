@@ -1,11 +1,10 @@
-// Bot de WhatsApp para Restaurante Dragón Rojo - VERSIÓN CORREGIDA
+// Bot de WhatsApp para Outlet Tech Boyacá - iPhone Store
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
 const express = require('express');
 const cors = require('cors');
 const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 const path = require('path');
-const sharp = require('sharp');
 
 const app = express();
 
@@ -20,7 +19,7 @@ let sock;
 let qrCodeData = null;
 let isConnected = false;
 let isConnecting = false;
-let miNumero = null; // 🆕 Guardar mi número para NO responderme a mí mismo
+let miNumero = null;
 const PORT = 3000;
 
 // ⏰ CONFIGURACIÓN DE COOLDOWN
@@ -30,6 +29,7 @@ const COOLDOWN_MS = COOLDOWN_MINUTOS * 60 * 1000;
 // Control de mensajes procesados y cooldowns
 const mensajesProcesados = new Set();
 const usuariosCooldown = new Map();
+const estadoUsuarios = new Map();
 
 // Limpiar mensajes antiguos cada 5 minutos
 setInterval(() => {
@@ -37,40 +37,89 @@ setInterval(() => {
   console.log('🧹 Cache de mensajes limpiado');
 }, 300000);
 
-// Rutas de las fotos del menú y audio
-const MENU_FOTO1 = path.join(__dirname, 'menus', 'menu1.jpg');
-const MENU_FOTO2 = path.join(__dirname, 'menus', 'menu2.jpg');
-const AUDIO_SALUDO = path.join(__dirname, 'audios', 'saludo.ogg'); // 🆕 Audio de saludo
-
-// Información del restaurante DRAGÓN ROJO
-const RESTAURANTE = {
-  nombre: "Dragón Rojo",
-  saludo: "¡Hola! 👋\nBienvenido a Dragón Rojo 🐉✨",
-  horario: "Lunes a Domingo 10:30 AM - 10:00 PM",
-  telefono: "+57 3208831598",
-  direccion: "Cra. 11 4260, Sogamoso, Boyacá",
-  enlacePedidos: "d1714vcs9fzecp.cloudfront.net",
-  mensaje_instrucciones: `
-👇🏻👇🏻👇🏻 Haz tu pedido aquí 👇🏻👇🏻👇🏻
-d1714vcs9fzecp.cloudfront.net
-
-📍 Ubicación en tiempo real para entregas más rápidas
-
-🍜 Instrucciones para Pedido.
-1️⃣ Elige tus platos chinos favoritos
-2️⃣ Ingresa tu dirección 🏠
-3️⃣ ¡Confirma y listo! 🚀
-
-🚴‍♂️ Domicilios hasta la puerta de tu casa
-
-💬 Si prefieres pedir por chat, envíanos tus datos completos:
-📌 Nombre completo
-📌 Dirección
-📌 Barrio
-📌 Número de celular
-
-❤️🥡 Estamos listos para atenderte`
+// Información de OUTLET TECH BOYACÁ
+const EMPRESA = {
+  nombre: "Outlet Tech Boyacá",
+  audioSaludo: "./audio/saludo-daniela.ogg",
+  telefono: "305 2707907",
+  direccion: "Calle 11a # 9-27, Tunja, Boyacá",
+  ubicacionMaps: "https://maps.app.goo.gl/tGE9JvRz49DyYrAk7",
+  metodoPago: "💳 *Formas de pago disponibles:*\n\n✅ Efectivo\n✅ Transferencia\n✅ Nequi\n✅ Daviplata\n✅ Tarjetas",
+  whatsappAsesor: "317 6997474"
 };
+
+// 📱 CATÁLOGO DE IPHONES
+const IPHONES = `📱 *Estos son los iPhones que tenemos:*
+
+🔥 iPhone 13 128GB 
+   Negro, Azul, Blanco, Rosa, Verde
+   Batería +85%
+   💰 $1.325.000
+
+🔥 iPhone 13 256GB
+   Negro, Azul, Blanco, Rosa, Verde
+   Batería +85%
+   💰 $1.399.990
+
+🔥 iPhone 12 Pro 256GB
+   Azul - Batería +90%
+   💰 $1.449.990
+
+🔥 iPhone 14 Pro 256GB
+   Batería +85%
+   💰 $2.149.990
+
+🔥 iPhone 14 Pro Max 128GB
+   Negro - Batería +85%
+   💰 $2.449.990
+
+🔥 iPhone 14 Pro Max 256GB
+   Morado - Batería +85%
+   💰 $2.599.990
+
+🔥 iPhone 15 Pro 256GB + Cable tipo C
+   Batería +85%
+   💰 $2.699.990
+
+🔥 iPhone 14 Pro Max 512GB
+   Negro 89% | Morado 85-88%
+   💰 $2.799.990
+
+🔥 iPhone 15 Pro Max 256GB + Cable tipo C
+   Blanco 84-87%
+   💰 $2.999.990
+
+🔥 iPhone 16 Pro 128GB + Cable tipo C
+   Natural, Negro, Desert, Blanco
+   Batería +90%
+   💰 $2.999.990
+
+🔥 iPhone 15 Pro Max 1TB + Cable tipo C
+   Natural y Azul 81-88%
+   💰 $3.349.990
+
+🔥 iPhone 16 Pro 256GB + Cable tipo C
+   Natural y Negro +90%
+   💰 $3.399.990
+
+🔥 iPhone 15 Pro Max 1TB + Cable tipo C
+   Natural y Azul 90-95%
+   💰 $3.399.990
+
+✨ Todos en perfecto estado
+📦 Entrega inmediata
+
+Escribe el número del que te interesa o escribe *0* para volver al menú`;
+
+// 🎯 MENÚ PRINCIPAL
+const MENU_PRINCIPAL = `Soy Johana puedo ayudar? 😊
+
+1. Ver iPhones disponibles 📱
+2. Ubicación de la tienda 📍
+3. Formas de pago 💳
+4. Hablar con un asesor 👤
+
+Solo escribe el número`;
 
 // Verificar si un usuario está en cooldown
 function estaEnCooldown(telefono) {
@@ -86,31 +135,8 @@ function estaEnCooldown(telefono) {
     return minutosRestantes;
   }
   
-  // Si ya pasó el tiempo, eliminar del mapa
   usuariosCooldown.delete(telefono);
   return false;
-}
-
-// OPTIMIZAR IMÁGENES ANTES DE ENVIAR
-async function optimizarImagen(rutaImagen) {
-  try {
-    const buffer = await sharp(rutaImagen)
-      .resize(1280, null, {
-        withoutEnlargement: true,
-        fit: 'inside'
-      })
-      .jpeg({ 
-        quality: 80,
-        progressive: true 
-      })
-      .toBuffer();
-    
-    console.log(`📸 Imagen optimizada: ${(buffer.length / 1024).toFixed(2)} KB`);
-    return buffer;
-  } catch (error) {
-    console.log('⚠️  No se pudo optimizar, usando imagen original');
-    return fs.readFileSync(rutaImagen);
-  }
 }
 
 async function connectToWhatsApp() {
@@ -172,7 +198,6 @@ async function connectToWhatsApp() {
       } else if (connection === 'open') {
         console.log('✅ ¡Conectado a WhatsApp!');
         
-        // 🆕 OBTENER MI NÚMERO
         try {
           const user = sock.user;
           if (user && user.id) {
@@ -190,69 +215,42 @@ async function connectToWhatsApp() {
       }
     });
 
-    // 🔥 RECIBIR MENSAJES - VERSIÓN CORREGIDA
+    // 🔥 RECIBIR MENSAJES
     sock.ev.on('messages.upsert', async (m) => {
       try {
-        // Validaciones básicas
         if (m.type !== 'notify') return;
         
         const msg = m.messages[0];
         if (!msg.message) return;
-        if (msg.key.fromMe) return; // Ignorar mis propios mensajes
+        if (msg.key.fromMe) return;
         
         const from = msg.key.remoteJid;
         const messageId = msg.key.id;
         
-        // Ignorar estados de WhatsApp
         if (from === 'status@broadcast') return;
         
-        // 🆕 IGNORAR MI PROPIO NÚMERO
         const remitente = from.split('@')[0];
         if (miNumero && remitente === miNumero) {
           console.log('⛔ Ignorando mensaje de mi propio número');
           return;
         }
         
-        // ID único del mensaje
         const idUnico = `${from}-${messageId}`;
         
-        // 🔥 VERIFICAR SI YA FUE PROCESADO (Anti-duplicados)
         if (mensajesProcesados.has(idUnico)) {
           console.log('⛔ Mensaje ya procesado, ignorando...');
           return;
         }
         
-        // Marcar como procesado INMEDIATAMENTE
         mensajesProcesados.add(idUnico);
         
-        const text = msg.message.conversation || 
-                     msg.message.extendedTextMessage?.text || '';
+        const text = (msg.message.conversation || 
+                     msg.message.extendedTextMessage?.text || '').trim();
         
         const telefono = from.split('@')[0];
         console.log(`\n📩 Mensaje de ${telefono}: ${text}`);
 
-        // 🔥 VERIFICAR COOLDOWN
-        const minutosRestantes = estaEnCooldown(from);
-        
-        if (minutosRestantes) {
-          console.log(`⏳ Usuario en cooldown. Faltan ${minutosRestantes} minutos\n`);
-          return;
-        }
-
-        // 🔥 ACTIVAR COOLDOWN ANTES DE ENVIAR (muy importante!)
-        usuariosCooldown.set(from, Date.now());
-        console.log(`⏰ Cooldown activado para ${telefono} (${COOLDOWN_MINUTOS} minutos)`);
-
-        // Mostrar "escribiendo..."
-        await sock.sendPresenceUpdate('composing', from);
-        
-        // Enviar respuesta
-        await enviarSaludoYMenu(from);
-        
-        // Pausar indicador de escritura
-        await sock.sendPresenceUpdate('paused', from);
-        
-        console.log(`✅ Respuesta enviada a ${telefono}\n`);
+        await manejarMensaje(from, text, telefono);
 
       } catch (error) {
         console.error('❌ Error procesando mensaje:', error.message);
@@ -264,89 +262,197 @@ async function connectToWhatsApp() {
   }
 }
 
-// ENVIAR SALUDO + AUDIO + ENLACE DE PEDIDOS + MENÚ
-async function enviarSaludoYMenu(from) {
+// 🎯 MANEJAR MENSAJES Y MENÚ INTERACTIVO
+async function manejarMensaje(from, text, telefono) {
   try {
-    // 1. SALUDO INICIAL (TEXTO)
-    await sock.sendMessage(from, { text: RESTAURANTE.saludo });
-    console.log('  ✅ Saludo enviado');
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const estadoActual = estadoUsuarios.get(from) || 'inicial';
+    
+    console.log(`📊 Estado actual de ${telefono}: ${estadoActual}`);
 
-    // 2. 🆕 ENVIAR AUDIO DE SALUDO (OPCIONAL - Nota de voz)
-    if (fs.existsSync(AUDIO_SALUDO)) {
+    await sock.sendPresenceUpdate('composing', from);
+
+    const esNuevoUsuario = !estadoUsuarios.has(from);
+    const comandosInicio = ['hola', 'menu', 'inicio', 'ola', 'hi', 'hello', 'buenas'];
+    const esComandoInicio = comandosInicio.some(cmd => text.toLowerCase().includes(cmd));
+    const esOpcionMenu = ['1', '2', '3', '4', '0'].includes(text.trim());
+
+    const minutosRestantes = estaEnCooldown(from);
+    const estaEnMenuActivo = estadoActual === 'menu_principal' || estadoActual === 'viendo_iphones';
+    
+    // 🆕 Detectar si el usuario quiere reactivar el bot
+    const esNumeroSolo = /^[0-9]+$/.test(text.trim());
+    const comandosReactivar = ['menu', 'inicio', 'hola'];
+    const quiereReactivar = esNumeroSolo || comandosReactivar.some(cmd => text.toLowerCase().includes(cmd));
+    const estaEsperandoAsesor = estadoActual === 'esperando_asesor';
+
+    // Si está en cooldown y NO está en menú activo y NO es comando de inicio
+    // PERO: si está esperando asesor y quiere reactivar, SÍ debe responder
+    if (minutosRestantes && !estaEnMenuActivo && !esComandoInicio && !(estaEsperandoAsesor && quiereReactivar)) {
+      console.log(`⏳ Usuario en cooldown. Faltan ${minutosRestantes} minutos\n`);
+      await sock.sendPresenceUpdate('paused', from);
+      return;
+    }
+
+    // Si es nuevo usuario o comando de inicio
+    if (esNuevoUsuario || esComandoInicio) {
+      // 🎤 ENVIAR AUDIO DE DANIELA PRIMERO
+      if (!minutosRestantes) {
+        usuariosCooldown.set(from, Date.now());
+      }
+      
+      estadoUsuarios.set(from, 'menu_principal');
+      
       try {
-        const audioBuffer = fs.readFileSync(AUDIO_SALUDO);
-        await sock.sendMessage(from, {
-          audio: audioBuffer,
-          mimetype: 'audio/ogg; codecs=opus', // Formato de nota de voz de WhatsApp
-          ptt: true // 🔥 PTT = Push To Talk (nota de voz)
-        });
-        console.log('  ✅ Audio de saludo enviado');
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Verificar si existe el audio OGG
+        const rutaAudio = path.join(__dirname, 'audio', 'saludo-daniela.ogg');
+        console.log(`🔍 Buscando audio en: ${rutaAudio}`);
+        
+        if (fs.existsSync(rutaAudio)) {
+          const audioBuffer = fs.readFileSync(rutaAudio);
+          
+          await sock.sendMessage(from, {
+            audio: audioBuffer,
+            mimetype: 'audio/ogg; codecs=opus',
+            ptt: true
+          });
+          
+          console.log(`🎤 Audio de Daniela enviado a ${telefono}`);
+          
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } else {
+          console.log('⚠️ Audio no encontrado en:', rutaAudio);
+        }
       } catch (error) {
-        console.error('  ❌ Error enviando audio:', error.message);
+        console.error('❌ Error enviando audio:', error.message);
+      }
+      
+      await sock.sendMessage(from, { text: MENU_PRINCIPAL });
+      
+      console.log(`✅ Menú principal enviado a ${telefono}`);
+      await sock.sendPresenceUpdate('paused', from);
+      return;
+    }
+
+    // PROCESAR OPCIONES DEL MENÚ
+    if (estadoActual === 'menu_principal' && esOpcionMenu) {
+      await procesarOpcionMenu(from, text, telefono);
+    } else if (estadoActual === 'viendo_iphones') {
+      if (text === '0') {
+        estadoUsuarios.set(from, 'menu_principal');
+        await sock.sendMessage(from, { text: MENU_PRINCIPAL });
+        console.log(`✅ Usuario ${telefono} regresó al menú principal`);
+      } else if (esOpcionMenu) {
+        estadoUsuarios.set(from, 'menu_principal');
+        await procesarOpcionMenu(from, text, telefono);
+      } else {
+        // 🆕 AQUÍ SE ACTIVA CUANDO ESCRIBE ALGO QUE NO ES NÚMERO
+        estadoUsuarios.set(from, 'esperando_asesor');
+        await sock.sendMessage(from, { 
+          text: `Vale ya te respondo` 
+        });
+        console.log(`👤 Usuario ${telefono} será atendido por un asesor - Bot detenido`);
+      }
+    } else if (estadoActual === 'menu_principal') {
+      // 🆕 Si está en el menú pero escribe TEXTO (no un número válido)
+      // Detectar si tiene letras o palabras (romper el bucle)
+      const tieneLetras = /[a-zA-ZáéíóúÁÉÍÓÚñÑ]/.test(text);
+      
+      if (tieneLetras) {
+        // ROMPER EL BUCLE - el usuario escribió algo humano
+        estadoUsuarios.set(from, 'esperando_asesor');
+        await sock.sendMessage(from, { 
+          text: `Vale ya te respondo` 
+        });
+        console.log(`👤 Usuario ${telefono} escribió texto - Bot detenido para asesor humano`);
+      } else {
+        // Solo si escribió números raros que no son 1,2,3,4
+        await sock.sendMessage(from, { 
+          text: `⚠️ Por favor escribe *1*, *2*, *3* o *4* para elegir una opción:\n\n${MENU_PRINCIPAL}` 
+        });
+      }
+    } else if (estadoActual === 'esperando_asesor') {
+      // 🆕 BOT DETENIDO - Pero se reactiva si el usuario presiona un número
+      const comandosReactivar = ['menu', 'inicio', 'hola'];
+      const quiereMenu = comandosReactivar.some(cmd => text.toLowerCase().includes(cmd));
+      const esNumeroSolo = /^[0-9]+$/.test(text.trim());
+      
+      if (quiereMenu || esNumeroSolo) {
+        // Si escribe "menu", "hola" o CUALQUIER NÚMERO, reactiva el bot
+        estadoUsuarios.set(from, 'menu_principal');
+        await sock.sendMessage(from, { text: MENU_PRINCIPAL });
+        console.log(`✅ Usuario ${telefono} reactivó el bot con: "${text}"`);
+      } else {
+        // Si escribe CUALQUIER otra cosa, el bot NO responde (se ve humano)
+        console.log(`🤐 Bot silencioso para ${telefono} - Mensaje: "${text}" (esperando asesor humano)`);
+        // NO enviar NADA - total silencio para que parezca humano
       }
     }
 
-    // 3. MENSAJE CON ENLACE DE PEDIDOS
-    await sock.sendMessage(from, { text: RESTAURANTE.mensaje_instrucciones });
-    console.log('  ✅ Enlace de pedidos enviado');
-    await new Promise(resolve => setTimeout(resolve, 1200));
-
-    // 3. ENVIAR FOTOS DEL MENÚ (OPCIONAL)
-    if (fs.existsSync(MENU_FOTO1)) {
-      try {
-        const foto1 = await optimizarImagen(MENU_FOTO1);
-        await sock.sendMessage(from, {
-          image: foto1,
-          caption: '📋 Menú - Página 1'
-        });
-        console.log('  ✅ Foto 1 enviada');
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      } catch (error) {
-        console.error('  ❌ Error enviando foto 1:', error.message);
-      }
-    }
-
-    if (fs.existsSync(MENU_FOTO2)) {
-      try {
-        const foto2 = await optimizarImagen(MENU_FOTO2);
-        await sock.sendMessage(from, {
-          image: foto2,
-          caption: '📋 Menú - Página 2'
-        });
-        console.log('  ✅ Foto 2 enviada');
-        await new Promise(resolve => setTimeout(resolve, 800));
-      } catch (error) {
-        console.error('  ❌ Error enviando foto 2:', error.message);
-      }
-    }
-
-    // 4. MENSAJE FINAL DE CONTACTO - DESACTIVADO
-    // Si quieres enviarlo, descomenta este bloque:
-    /*
-    const cierre = `📱 *¿Prefieres llamar?*
-
-📞 Llámanos: ${RESTAURANTE.telefono}
-📍 Visítanos: ${RESTAURANTE.direccion}
-🕐 Horario: ${RESTAURANTE.horario}
-
-¡Gracias por elegirnos! 🐉❤️`;
-
-    await sock.sendMessage(from, { text: cierre });
-    console.log('  ✅ Mensaje de cierre enviado');
-    */
+    await sock.sendPresenceUpdate('paused', from);
 
   } catch (error) {
-    console.error('❌ Error enviando secuencia:', error.message);
-    
-    try {
-      await sock.sendMessage(from, { 
-        text: '⚠️ Hubo un problema, pero puedes hacer tu pedido aquí: https://surl.li/gstbzb 🐉' 
-      });
-    } catch (e) {
-      console.error('❌ Error crítico:', e.message);
+    console.error('❌ Error manejando mensaje:', error.message);
+  }
+}
+
+// 🎯 PROCESAR OPCIONES DEL MENÚ
+async function procesarOpcionMenu(from, text, telefono) {
+  try {
+    const opcion = text.trim();
+
+    switch(opcion) {
+      case '1':
+        estadoUsuarios.set(from, 'viendo_iphones');
+        await sock.sendMessage(from, { text: IPHONES });
+        console.log(`✅ Catálogo enviado a ${telefono}`);
+        break;
+
+      case '2':
+        await sock.sendMessage(from, { 
+          text: `📍 *Nuestra ubicación*\n\n${EMPRESA.direccion}\n\n⏰ *Horario*\nLunes a Sábado: 7:00 AM - 8:00 PM\nDomingos: 8:00 AM - 11:00 AM` 
+        });
+        
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await sock.sendMessage(from, {
+          location: {
+            degreesLatitude: 5.524566,
+            degreesLongitude: -73.363801
+          }
+        });
+        
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await sock.sendMessage(from, { 
+          text: `🗺️ También puedes verlo aquí:\n${EMPRESA.ubicacionMaps}` 
+        });
+        
+        estadoUsuarios.set(from, 'menu_principal');
+        console.log(`✅ Ubicación enviada a ${telefono}`);
+        break;
+
+      case '3':
+        await sock.sendMessage(from, { 
+          text: `${EMPRESA.metodoPago}\n\n✨ Pregunta por nuestros planes de financiación` 
+        });
+        estadoUsuarios.set(from, 'menu_principal');
+        console.log(`✅ Métodos de pago enviados a ${telefono}`);
+        break;
+
+      case '4':
+        await sock.sendMessage(from, { 
+          text: `📞 *Hablar con un asesor*\n\n¡Con gusto te atendemos!\n\n💬 WhatsApp: ${EMPRESA.whatsappAsesor}\n☎️ Llámanos: ${EMPRESA.telefono}` 
+        });
+        estadoUsuarios.set(from, 'menu_principal');
+        console.log(`✅ Info de contacto enviada a ${telefono}`);
+        break;
+
+      default:
+        await sock.sendMessage(from, { 
+          text: `⚠️ Opción no válida.\n\nPor favor escribe *1*, *2*, *3* o *4*:\n\n${MENU_PRINCIPAL}` 
+        });
+        break;
     }
+  } catch (error) {
+    console.error('❌ Error procesando opción:', error.message);
   }
 }
 
@@ -365,13 +471,14 @@ app.get('/status', (req, res) => {
       telefono: telefono.split('@')[0],
       ultimaRespuesta: new Date(timestamp).toLocaleString('es-CO'),
       minutosRestantes: minutosRestantes > 0 ? minutosRestantes : 0,
-      puedeResponder: minutosRestantes === 0
+      puedeResponder: minutosRestantes === 0,
+      estado: estadoUsuarios.get(telefono) || 'inicial'
     };
   });
 
   res.json({ 
     status: isConnected ? 'conectado' : 'desconectado',
-    restaurante: RESTAURANTE.nombre,
+    empresa: EMPRESA.nombre,
     cooldownMinutos: COOLDOWN_MINUTOS,
     mensajesProcesados: mensajesProcesados.size,
     usuariosEnCooldown: usuariosActivos,
@@ -394,7 +501,8 @@ app.post('/reset-cooldown/:telefono', (req, res) => {
   
   if (usuariosCooldown.has(telefono)) {
     usuariosCooldown.delete(telefono);
-    console.log(`✅ Cooldown eliminado para ${req.params.telefono}`);
+    estadoUsuarios.delete(telefono);
+    console.log(`✅ Cooldown y estado eliminados para ${req.params.telefono}`);
     res.json({ 
       message: `Cooldown eliminado para ${req.params.telefono}`,
       puedeResponder: true 
@@ -409,6 +517,7 @@ app.post('/reset-cooldown/:telefono', (req, res) => {
 app.post('/reset-all-cooldowns', (req, res) => {
   const cantidad = usuariosCooldown.size;
   usuariosCooldown.clear();
+  estadoUsuarios.clear();
   console.log(`✅ ${cantidad} cooldowns eliminados`);
   res.json({ 
     message: `${cantidad} cooldowns eliminados correctamente` 
@@ -542,41 +651,17 @@ app.post('/clear-session', async (req, res) => {
 
 // Iniciar servidor
 app.listen(PORT, () => {
-  console.log(`\n🐉 BOT DE WHATSAPP - DRAGÓN ROJO 🐉`);
+  console.log(`\n📱 BOT DE WHATSAPP - OUTLET TECH BOYACÁ 🎯`);
   console.log(`🌐 Panel de Control: http://localhost:${PORT}`);
-  console.log(`📊 API Status: http://localhost:${PORT}/status`);
-  console.log(`🔗 Enlace de pedidos: ${RESTAURANTE.enlacePedidos}\n`);
+  console.log(`📊 API Status: http://localhost:${PORT}/status\n`);
   
-  // Verificar fotos del menú
-  console.log('📁 Verificando archivos multimedia...');
-  if (fs.existsSync(MENU_FOTO1)) {
-    const size1 = (fs.statSync(MENU_FOTO1).size / 1024).toFixed(2);
-    console.log(`✅ menu1.jpg encontrado (${size1} KB)`);
-  } else {
-    console.log('⚠️  menu1.jpg NO encontrado (opcional)');
-  }
-  
-  if (fs.existsSync(MENU_FOTO2)) {
-    const size2 = (fs.statSync(MENU_FOTO2).size / 1024).toFixed(2);
-    console.log(`✅ menu2.jpg encontrado (${size2} KB)`);
-  } else {
-    console.log('⚠️  menu2.jpg NO encontrado (opcional)');
-  }
-  
-  if (fs.existsSync(AUDIO_SALUDO)) {
-    const sizeAudio = (fs.statSync(AUDIO_SALUDO).size / 1024).toFixed(2);
-    console.log(`✅ saludo.ogg encontrado (${sizeAudio} KB)`);
-  } else {
-    console.log('⚠️  saludo.ogg NO encontrado (opcional)');
-  }
-  
-  console.log('\n⚡ CONFIGURACIÓN:');
-  console.log('   • Respuesta automática: ACTIVADA');
-  console.log('   • Audio de saludo: ' + (fs.existsSync(AUDIO_SALUDO) ? 'INCLUIDO ✅' : 'Desactivado'));
-  console.log('   • Enlace de pedidos: INCLUIDO ✅');
+  console.log('⚡ CONFIGURACIÓN:');
+  console.log('   • 🎤 Audio de Daniela: ACTIVADO ✅ (OGG)');
+  console.log('   • Menú interactivo: ACTIVADO ✅');
+  console.log('   • Catálogo de iPhones: INCLUIDO ✅');
+  console.log('   • 👤 Derivación a asesor: ACTIVADO ✅');
   console.log('   • Anti-duplicados: MEJORADO 🔥');
   console.log('   • NO responde a mi propio número: ✅');
-  console.log('   • Optimización de imágenes: ACTIVADA');
   console.log(`   • ⏰ Cooldown: ${COOLDOWN_MINUTOS} minutos entre respuestas`);
   console.log('   • 🌐 Interfaz Web: ACTIVADA\n');
   
@@ -584,6 +669,12 @@ app.listen(PORT, () => {
   if (!fs.existsSync(publicFolder)) {
     fs.mkdirSync(publicFolder);
     console.log('📁 Carpeta "public" creada\n');
+  }
+  
+  const audioFolder = path.join(__dirname, 'audio');
+  if (!fs.existsSync(audioFolder)) {
+    fs.mkdirSync(audioFolder);
+    console.log('📁 Carpeta "audio" creada - PON TU AUDIO AHÍ\n');
   }
   
   connectToWhatsApp();

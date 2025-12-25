@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🍽️ Bot Restaurante - Panel de Control</title>
+    <title>📱 Outlet Tech Boyacá - Panel de Control</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -34,9 +34,13 @@
             margin-bottom: 10px;
         }
 
-        .header p {
+        .header .subtitle {
             font-size: 1.2em;
             opacity: 0.9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         .grid {
@@ -54,7 +58,7 @@
         }
 
         .card h2 {
-            color: #667eea;
+            color: #1e3a8a;
             margin-bottom: 20px;
             font-size: 1.5em;
             display: flex;
@@ -77,11 +81,6 @@
 
         .status-desconectado {
             background: #ef4444;
-            color: white;
-        }
-
-        .status-esperando {
-            background: #f59e0b;
             color: white;
         }
 
@@ -125,7 +124,7 @@
         }
 
         .btn-primary {
-            background: #667eea;
+            background: #3b82f6;
             color: white;
         }
 
@@ -136,11 +135,6 @@
 
         .btn-warning {
             background: #f59e0b;
-            color: white;
-        }
-
-        .btn-success {
-            background: #10b981;
             color: white;
         }
 
@@ -164,7 +158,7 @@
         }
 
         .info-value {
-            color: #667eea;
+            color: #3b82f6;
             font-weight: 600;
         }
 
@@ -197,6 +191,13 @@
             color: #6b7280;
         }
 
+        .user-estado {
+            font-size: 0.75em;
+            color: #3b82f6;
+            font-style: italic;
+            margin-top: 4px;
+        }
+
         .cooldown-badge {
             background: #fbbf24;
             color: #78350f;
@@ -212,30 +213,6 @@
             font-size: 0.85em;
             width: auto;
             margin: 0;
-        }
-
-        .settings-group {
-            margin: 15px 0;
-        }
-
-        .settings-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #374151;
-            font-weight: bold;
-        }
-
-        .settings-group input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 1em;
-        }
-
-        .settings-group input:focus {
-            outline: none;
-            border-color: #667eea;
         }
 
         .alert {
@@ -263,21 +240,6 @@
             border: 1px solid #3b82f6;
         }
 
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         .log-container {
             background: #1f2937;
             color: #10b981;
@@ -294,6 +256,33 @@
             padding: 5px;
         }
 
+        .feature-list {
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .feature-list h3 {
+            color: #1e3a8a;
+            margin-bottom: 10px;
+        }
+
+        .feature-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            color: #374151;
+        }
+
+        .feature-list li:before {
+            content: "✅ ";
+            margin-right: 8px;
+        }
+
         @media (max-width: 768px) {
             .grid {
                 grid-template-columns: 1fr;
@@ -308,8 +297,11 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🍽️ Bot de Restaurante</h1>
-            <p>Panel de Control - WhatsApp Business</p>
+            <h1>📱 Outlet Tech Boyacá</h1>
+            <p class="subtitle">
+                <span>Panel de Control - Bot de WhatsApp</span>
+                <span>🍎</span>
+            </p>
         </div>
 
         <div id="alertContainer"></div>
@@ -323,8 +315,8 @@
                     <span id="status" class="status-badge status-desconectado">Desconectado</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Restaurante:</span>
-                    <span id="restaurante" class="info-value">-</span>
+                    <span class="info-label">Empresa:</span>
+                    <span id="empresa" class="info-value">-</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Cooldown:</span>
@@ -333,6 +325,10 @@
                 <div class="info-row">
                     <span class="info-label">Mensajes procesados:</span>
                     <span id="mensajes" class="info-value">0</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Mi número:</span>
+                    <span id="miNumero" class="info-value">-</span>
                 </div>
                 <button class="btn btn-primary" onclick="actualizarEstado()">
                     🔄 Actualizar Estado
@@ -373,27 +369,27 @@
                 </button>
             </div>
 
-            <!-- Configuración -->
+            <!-- Funcionalidades del Bot -->
             <div class="card">
-                <h2>⚙️ Configuración</h2>
-                <div class="settings-group">
-                    <label>Cooldown (minutos):</label>
-                    <input type="number" id="cooldownInput" value="30" min="1" max="1440">
+                <h2>🎯 Funcionalidades del Bot</h2>
+                <div class="feature-list">
+                    <h3>Menú Interactivo</h3>
+                    <ul>
+                        <li>Opción 1: Ver catálogo de iPhones</li>
+                        <li>Opción 2: Ubicación de la tienda</li>
+                        <li>Opción 3: Métodos de pago</li>
+                        <li>Opción 4: Hablar con asesor</li>
+                    </ul>
                 </div>
-                <div class="settings-group">
-                    <label>Nombre del Restaurante:</label>
-                    <input type="text" id="nombreRestaurante" value="Tu Restaurante">
+                <div class="feature-list">
+                    <h3>Características</h3>
+                    <ul>
+                        <li>Respuestas automáticas 24/7</li>
+                        <li>Control de cooldown por usuario</li>
+                        <li>Anti-duplicados mejorado</li>
+                        <li>Sistema de estados por conversación</li>
+                    </ul>
                 </div>
-                <div class="settings-group">
-                    <label>Teléfono:</label>
-                    <input type="text" id="telefono" value="+57 XXX XXX XXXX">
-                </div>
-                <button class="btn btn-success" onclick="guardarConfiguracion()">
-                    💾 Guardar Configuración
-                </button>
-                <p style="font-size: 0.85em; color: #6b7280; margin-top: 10px;">
-                    ⚠️ Reinicia el bot para aplicar los cambios
-                </p>
             </div>
 
             <!-- Logs en tiempo real -->
@@ -411,12 +407,11 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
-         const API_URL = window.location.hostname === 'localhost' 
-        ? 'http://localhost:3000' 
-        : `http://${window.location.hostname}:3000`;
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000' 
+            : `http://${window.location.hostname}:3000`;
         let qrCodeInstance = null;
 
-        // Mostrar alerta
         function mostrarAlerta(mensaje, tipo = 'success') {
             const container = document.getElementById('alertContainer');
             const alert = document.createElement('div');
@@ -431,7 +426,6 @@
             }, 5000);
         }
 
-        // Agrega log
         function agregarLog(mensaje) {
             const logs = document.getElementById('logs');
             const timestamp = new Date().toLocaleTimeString('es-CO');
@@ -440,28 +434,25 @@
             entry.textContent = `[${timestamp}] ${mensaje}`;
             logs.insertBefore(entry, logs.firstChild);
 
-            // Mantener solo los últimos 50 logs
             while (logs.children.length > 50) {
                 logs.removeChild(logs.lastChild);
             }
         }
 
-        // Actualizar estado del bot
         async function actualizarEstado() {
             try {
                 const response = await fetch(`${API_URL}/status`);
                 const data = await response.json();
 
-                // Actualizar estado
                 const statusEl = document.getElementById('status');
                 statusEl.textContent = data.status === 'conectado' ? 'Conectado ✅' : 'Desconectado ❌';
                 statusEl.className = `status-badge ${data.status === 'conectado' ? 'status-conectado' : 'status-desconectado'}`;
 
-                document.getElementById('restaurante').textContent = data.restaurante || '-';
+                document.getElementById('empresa').textContent = data.empresa || '-';
                 document.getElementById('cooldown').textContent = `${data.cooldownMinutos || 0} minutos`;
                 document.getElementById('mensajes').textContent = data.mensajesProcesados || 0;
+                document.getElementById('miNumero').textContent = data.miNumero || 'No disponible';
 
-                // Actualizar lista de usuarios
                 actualizarListaUsuarios(data.usuariosEnCooldown || []);
 
                 agregarLog('Estado actualizado correctamente');
@@ -471,7 +462,6 @@
             }
         }
 
-        // Actualizar lista de usuarios en cooldown
         function actualizarListaUsuarios(usuarios) {
             const usersList = document.getElementById('usersList');
             
@@ -491,6 +481,7 @@
                     <div class="user-info">
                         <div class="user-phone">📱 ${user.telefono}</div>
                         <div class="user-time">Última respuesta: ${user.ultimaRespuesta}</div>
+                        <div class="user-estado">Estado: ${user.estado || 'inicial'}</div>
                     </div>
                     ${!puedeResponder ? `<span class="cooldown-badge">⏳ ${user.minutosRestantes} min</span>` : ''}
                     <button class="btn btn-warning btn-small" onclick="resetearCooldown('${user.telefono}')">
@@ -502,7 +493,6 @@
             });
         }
 
-        // Resetear cooldown de un usuario
         async function resetearCooldown(telefono) {
             try {
                 const response = await fetch(`${API_URL}/reset-cooldown/${telefono}`, {
@@ -519,7 +509,6 @@
             }
         }
 
-        // Resetear todos los cooldowns
         async function resetearTodosCooldowns() {
             if (!confirm('¿Estás seguro de resetear TODOS los cooldowns?')) return;
 
@@ -538,9 +527,7 @@
             }
         }
 
-        // Forzar reconexión
         async function forzarReconexion() {
-            // Primero verificar si ya está conectado
             try {
                 const statusResponse = await fetch(`${API_URL}/status`);
                 const statusData = await statusResponse.json();
@@ -550,9 +537,7 @@
                     agregarLog('⚠️ Reconexión cancelada - Ya está conectado');
                     return;
                 }
-            } catch (e) {
-                // Continuar si hay error al verificar estado
-            }
+            } catch (e) {}
             
             if (!confirm('¿Forzar una nueva conexión? Esto puede ayudar si el QR no aparece.')) return;
 
@@ -576,7 +561,6 @@
                 
                 document.getElementById('qrcode').innerHTML = '<div class="qr-placeholder">⏳ Generando QR...</div>';
                 
-                // Actualizar frecuentemente por 10 segundos
                 let contador = 0;
                 const intervalo = setInterval(() => {
                     obtenerQR();
@@ -590,7 +574,6 @@
             }
         }
 
-        // Cerrar sesión actual
         async function cerrarSesion() {
             if (!confirm('¿Cerrar la sesión actual de WhatsApp?')) return;
 
@@ -604,7 +587,6 @@
                 mostrarAlerta('✅ Sesión cerrada. Generando nuevo QR en 2 segundos...', 'success');
                 agregarLog('Sesión cerrada - Esperando nuevo QR');
                 
-                // Esperar y actualizar
                 setTimeout(() => {
                     obtenerQR();
                     actualizarEstado();
@@ -615,7 +597,6 @@
             }
         }
 
-        // Limpiar sesión y usar otro WhatsApp
         async function limpiarSesion() {
             if (!confirm('⚠️ Esto eliminará la sesión actual y permitirá conectar otro WhatsApp. ¿Continuar?')) return;
 
@@ -631,10 +612,8 @@
                 mostrarAlerta('✅ ' + data.message, 'success');
                 agregarLog('✅ Sesión limpiada - Generando nuevo QR');
                 
-                // Limpiar el QR actual
                 document.getElementById('qrcode').innerHTML = '<div class="qr-placeholder">⏳ Generando nuevo QR...</div>';
                 
-                // Actualizar QR y estado cada segundo durante 10 segundos
                 let intentos = 0;
                 const intervalo = setInterval(() => {
                     obtenerQR();
@@ -652,39 +631,10 @@
             }
         }
 
-        // Guardar configuración
-        function guardarConfiguracion() {
-            const cooldown = document.getElementById('cooldownInput').value;
-            const nombre = document.getElementById('nombreRestaurante').value;
-            const telefono = document.getElementById('telefono').value;
-
-            localStorage.setItem('bot_config', JSON.stringify({
-                cooldown,
-                nombre,
-                telefono
-            }));
-
-            mostrarAlerta('Configuración guardada. Reinicia el bot para aplicar los cambios.', 'info');
-            agregarLog('Configuración guardada localmente');
-        }
-
-        // Cargar configuración
-        function cargarConfiguracion() {
-            const config = localStorage.getItem('bot_config');
-            if (config) {
-                const data = JSON.parse(config);
-                document.getElementById('cooldownInput').value = data.cooldown || 30;
-                document.getElementById('nombreRestaurante').value = data.nombre || 'Tu Restaurante';
-                document.getElementById('telefono').value = data.telefono || '+57 XXX XXX XXXX';
-            }
-        }
-
-        // Limpiar logs
         function limpiarLogs() {
             document.getElementById('logs').innerHTML = '<div class="log-entry">Logs limpiados...</div>';
         }
 
-        // Obtener QR code
         let ultimoQR = null;
         let ultimoEstadoConectado = null;
         
@@ -696,19 +646,16 @@
                 const qrContainer = document.getElementById('qrcode');
 
                 if (data.connected) {
-                    // YA ESTÁ CONECTADO - No mostrar QR
                     ultimoQR = null;
                     if (ultimoEstadoConectado !== true) {
                         qrContainer.innerHTML = '<div class="qr-placeholder" style="color: #10b981;">✅ WhatsApp Conectado</div>';
                         ultimoEstadoConectado = true;
                     }
                 } else if (data.qr && data.qr !== ultimoQR) {
-                    // NUEVO QR DISPONIBLE
                     ultimoQR = data.qr;
                     ultimoEstadoConectado = false;
                     qrContainer.innerHTML = '';
                     
-                    // Usar QRCode.js para generar el QR
                     new QRCode(qrContainer, {
                         text: data.qr,
                         width: 256,
@@ -721,40 +668,30 @@
                     agregarLog('✅ Código QR generado - Escanéalo con WhatsApp');
                     mostrarAlerta('✅ Nuevo código QR disponible. Escanéalo con tu WhatsApp.', 'success');
                 } else if (!data.qr && !data.connected && ultimoEstadoConectado !== false) {
-                    // ESPERANDO QR
                     ultimoEstadoConectado = false;
                     qrContainer.innerHTML = '<div class="qr-placeholder">⏳ Esperando código QR...</div>';
                 }
             } catch (error) {
-                // Silenciar errores si el servidor no está listo
                 console.log('Esperando servidor...');
             }
         }
 
-        // Inicializar
         window.onload = function() {
-            agregarLog('Panel de control iniciado');
-            cargarConfiguracion();
+            agregarLog('Panel de control iniciado - Outlet Tech Boyacá');
             actualizarEstado();
             obtenerQR();
 
-            // Actualizar estado cada 5 segundos
             setInterval(actualizarEstado, 5000);
             
-            // Actualizar QR con lógica inteligente
             let contadorQR = 0;
             setInterval(() => {
                 contadorQR++;
-                // Si está conectado, actualizar cada 15 segundos (cada 5 ciclos)
-                // Si no está conectado, actualizar cada 3 segundos
                 
                 if (ultimoEstadoConectado === true) {
-                    // Ya conectado, actualizar menos frecuente
                     if (contadorQR % 5 === 0) {
                         obtenerQR();
                     }
                 } else {
-                    // Desconectado o esperando QR, actualizar más frecuente
                     obtenerQR();
                 }
             }, 3000);
