@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dragon Rojo - Restaurante Chino</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #000000;
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(135deg, #FF0000 0%, #FF1a1a  100%);
+            clip-path: polygon(30% 0, 100% 0, 100% 100%, 0% 100%);
+            z-index: 0;
+        }
+
+        body::after {
+            content: '🏮';
+            position: fixed;
+            top: 15%;
+            right: 15%;
+            font-size: 100px;
+            opacity: 0.4;
+            z-index: 0;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .lantern-2 {
+            position: fixed;
+            top: 50%;
+            right: 5%;
+            font-size: 60px;
+            opacity: 0.3;
+            z-index: 0;
+            animation: float 5s ease-in-out infinite 2s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+
+        .btn-admin-access {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid transparent;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.2;
+        }
+
+        .btn-admin-access:hover {
+            opacity: 1;
+            background: rgba(255, 0, 0, 0.8);
+            border-color: #FFD700;
+            transform: scale(1.1);
+        }
+
+        .btn-admin-access::before {
+            content: '🔒';
+            font-size: 18px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 40px 20px;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5), 0 0 30px rgba(255, 215, 0, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+            position: relative;
+        }
+
+        header h1::before {
+            content: '🐉';
+            position: absolute;
+            left: -80px;
+            animation: dragonFloat 3s ease-in-out infinite;
+        }
+
+        header h1::after {
+            content: '🐉';
+            position: absolute;
+            right: -80px;
+            animation: dragonFloat 3s ease-in-out infinite 1.5s;
+        }
+
+        @keyframes dragonFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes glow {
+            from { text-shadow: 3px 3px 6px rgba(0,0,0,0.5), 0 0 20px rgba(255, 215, 0, 0.4); }
+            to { text-shadow: 3px 3px 6px rgba(0,0,0,0.5), 0 0 40px rgba(255, 215, 0, 0.8), 0 0 50px rgba(255, 140, 0, 0.6); }
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .info-numero {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .info-numero h3 {
+            margin-bottom: 10px;
+        }
+
+        .info-numero p {
+            font-size: 1.2em;
+        }
+
+        .loading-message {
+            text-align: center;
+            color: #FFD700;
+            font-size: 1.5em;
+            padding: 60px 20px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .platillo-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .platillo-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .platillo-imagen {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .platillo-info {
+            padding: 20px;
+        }
+
+        .platillo-codigo {
+            display: inline-block;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #8B0000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+        }
+
+        .platillo-nombre {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .platillo-descripcion {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .platillo-precio {
+            font-size: 1.8em;
+            color: #27ae60;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .btn-pedir {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-pedir:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4);
+        }
+
+        .whatsapp-icon {
+            font-size: 20px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255,255,255,0.8);
+            margin-top: 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            margin: 5% auto;
+            padding: 30px;
+            border: 2px solid #FFD700;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            color: white;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #FFD700;
+        }
+
+        .modal-content h3 {
+            color: #FFD700;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        #resumenPedido {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .modal-content label {
+            display: block;
+            color: #FFD700;
+            font-weight: bold;
+            margin-bottom: 8px;
+            margin-top: 15px;
+        }
+
+        .modal-content input,
+        .modal-content textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #444;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        .modal-content input:focus,
+        .modal-content textarea:focus {
+            outline: none;
+            border-color: #FFD700;
+        }
+
+        .modal-content textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: Arial, sans-serif;
+        }
+
+        .btn-confirmar {
+            width: 100%;
+            margin-top: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-confirmar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4);
+        }
+
+        @media (max-width: 600px) {
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+                margin: 10% auto;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            header h1::before,
+            header h1::after {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="btn-admin-access" onclick="goToAdmin()" title="Acceso Admin"></button>
+
+    <div class="container">
+        <header>
+            <h1>Dragon Rojo</h1>
+            <p>Auténtica cocina china a un click de distancia</p>
+        </header>
+
+        <div class="info-numero">
+            <h3>📱 Pedidos por WhatsApp</h3>
+            <p>Haz clic en cualquier platillo y te llevaremos directo a WhatsApp</p>
+        </div>
+
+        <div class="menu-grid" id="menuGrid">
+            <div class="loading-message">⏳ Cargando menú delicioso...</div>
+        </div>
+    </div>
+
+    <div id="modalDireccion" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal()">&times;</span>
+            <h3>Completa tu pedido</h3>
+            <div id="resumenPedido"></div>
+            <label for="direccion">Dirección de entrega:</label>
+            <input type="text" id="direccion" placeholder="Ingresa tu dirección completa">
+            <label for="observaciones">Observaciones (opcional):</label>
+            <textarea id="observaciones" placeholder="Ej: Sin cebolla, punto de referencia, etc."></textarea>
+            <button onclick="enviarPedido()" class="btn-confirmar">Enviar Pedido por WhatsApp</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>🍃 Dragon Rojo - Cocina China Auténtica 🍃</p>
+        <p>© 2025 Todos los derechos reservados</p>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Verificar si venimos de la animación
+        const fromIntro = sessionStorage.getItem('fromIntro');
+        
+        if (!fromIntro) {
+            // Si NO venimos de la animación, redirigir a index.html
+            window.location.href = 'index.html';
+        } else {
+            // Limpiar la marca para la próxima visita
+            sessionStorage.removeItem('fromIntro');
+        }
+
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCUdstEpWfEwDRNGlxlWTqn3YBZon7fPDo",
+            authDomain: "dragon-rojo-restaurante.firebaseapp.com",
+            databaseURL: "https://dragon-rojo-restaurante-default-rtdb.firebaseio.com",
+            projectId: "dragon-rojo-restaurante",
+            storageBucket: "dragon-rojo-restaurante.firebasestorage.app",
+            messagingSenderId: "907364865038",
+            appId: "1:907364865038:web:c21124fa1c85536715985f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        let pedidoActual = {};
+
+        function getWhatsAppNumber() {
+            return new Promise((resolve) => {
+                const configRef = ref(database, 'config/whatsapp');
+                onValue(configRef, (snapshot) => {
+                    const number = snapshot.val();
+                    if (number) {
+                        resolve('57' + number); // Agregar código de país +57
+                    } else {
+                        resolve('573028599105'); // Número por defecto
+                    }
+                }, { onlyOnce: true });
+            });
+        }
+
+        function formatPrice(price) {
+            return `$${parseInt(price).toLocaleString('es-CO')}`;
+        }
+
+        function renderMenu(platillos) {
+            const menuGrid = document.getElementById('menuGrid');
+            menuGrid.innerHTML = '';
+
+            if (!platillos || platillos.length === 0) {
+                menuGrid.innerHTML = '<div style="color: #FFD700; text-align: center; padding: 40px; width: 100%;">🍜 No hay platillos disponibles</div>';
+                return;
+            }
+
+            platillos.forEach(platillo => {
+                const card = document.createElement('div');
+                card.className = 'platillo-card';
+                card.innerHTML = `
+                    <img src="${platillo.imagen}" alt="${platillo.nombre}" class="platillo-imagen" onerror="this.src='https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&h=400&fit=crop'">
+                    <div class="platillo-info">
+                        <span class="platillo-codigo">${platillo.codigo}</span>
+                        <h2 class="platillo-nombre">${platillo.nombre}</h2>
+                        <p class="platillo-descripcion">${platillo.descripcion}</p>
+                        <div class="platillo-precio">${formatPrice(platillo.precio)}</div>
+                        <button class="btn-pedir" onclick="window.mostrarFormularioPedido('${platillo.codigo}', '${platillo.nombre.replace(/'/g, "\\'")}', '${formatPrice(platillo.precio)}')">
+                            <span class="whatsapp-icon">💬</span>Pedir por WhatsApp
+                        </button>
+                    </div>
+                `;
+                menuGrid.appendChild(card);
+            });
+        }
+
+        // Cargar platillos desde Firebase - ORDENADOS
+        const platillosRef = ref(database, 'platillos');
+        onValue(platillosRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                // Convertir a array y ordenar por el campo 'orden'
+                const platillosArray = Object.values(data).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+                renderMenu(platillosArray);
+                console.log('✅ Platillos cargados en orden:', platillosArray.map(p => `${p.codigo} (orden: ${p.orden})`));
+            } else {
+                document.getElementById('menuGrid').innerHTML = '<div style="color: #FFD700; text-align: center; padding: 40px; width: 100%;">🍜 No hay platillos disponibles</div>';
+            }
+        }, (error) => {
+            console.error('Error cargando platillos:', error);
+            document.getElementById('menuGrid').innerHTML = '<div style="color: #FF0000; text-align: center; padding: 40px; width: 100%;">❌ Error al cargar el menú</div>';
+        });
+
+        window.mostrarFormularioPedido = function(codigo, nombre, precio) {
+            pedidoActual = { codigo, nombre, precio };
+            
+            document.getElementById('resumenPedido').innerHTML = `
+                <strong>📦 Platillo:</strong> ${codigo} - ${nombre}<br>
+                <strong>💰 Precio:</strong> ${precio}
+            `;
+            
+            document.getElementById('modalDireccion').style.display = 'block';
+            document.getElementById('direccion').value = '';
+            document.getElementById('observaciones').value = '';
+            document.getElementById('direccion').focus();
+        };
+
+        window.cerrarModal = function() {
+            document.getElementById('modalDireccion').style.display = 'none';
+        };
+
+        window.enviarPedido = async function() {
+            const direccion = document.getElementById('direccion').value.trim();
+            const observaciones = document.getElementById('observaciones').value.trim();
+            
+            if (!direccion) {
+                alert('⚠️ Por favor, ingresa tu dirección de entrega');
+                document.getElementById('direccion').focus();
+                return;
+            }
+            
+            const whatsappNumber = await getWhatsAppNumber();
+            
+            let mensaje = `Hola, quiero ordenar:%0A%0A` +
+                          `📦 Platillo: ${pedidoActual.codigo} - ${pedidoActual.nombre}%0A` +
+                          `💰 Precio: ${pedidoActual.precio}%0A%0A` +
+                          `🏠 Dirección de entrega:%0A${encodeURIComponent(direccion)}`;
+            
+            if (observaciones) {
+                mensaje += `%0A%0A📝 Observaciones:%0A${encodeURIComponent(observaciones)}`;
+            }
+            
+            window.open(`https://wa.me/${whatsappNumber}?text=${mensaje}`, '_blank');
+            cerrarModal();
+        };
+
+        window.goToAdmin = function() {
+            window.location.href = 'admin.html';
+        };
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('modalDireccion');
+            if (event.target == modal) {
+                cerrarModal();
+            }
+        };
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                cerrarModal();
+            }
+        });
+    </script>
+</body>
+</html>

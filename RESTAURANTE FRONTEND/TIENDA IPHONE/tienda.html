@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OutletTechBoyacá - iPhone Originales</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        /* Header estilo Premium Gold */
+        .header {
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 15px 0;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .logo-icon {
+            font-size: 28px;
+        }
+
+        .logo-text-small {
+            font-size: 14px;
+            color: #999;
+        }
+
+        .logo-text {
+            background: linear-gradient(135deg, #D4AF37 0%, #FFD700 50%, #D4AF37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
+        }
+
+        .btn-admin-access {
+            width: 36px;
+            height: 36px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+            color: #D4AF37;
+            font-size: 18px;
+        }
+
+        .btn-admin-access:hover {
+            opacity: 1;
+            background: rgba(212, 175, 55, 0.2);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: white;
+            text-align: center;
+            padding: 60px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.15) 0%, transparent 60%);
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 3.5em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+            color: #ffffff;
+        }
+
+        .hero-highlight {
+            background: linear-gradient(135deg, #D4AF37 0%, #FFD700 50%, #D4AF37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.6));
+        }
+
+        .hero p {
+            font-size: 1.3em;
+            color: #999;
+            font-weight: 400;
+            margin-bottom: 30px;
+        }
+
+        .info-whatsapp {
+            background: rgba(212, 175, 55, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 20px;
+            border-radius: 18px;
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .info-whatsapp p {
+            font-size: 1em;
+            margin: 0;
+            color: #D4AF37;
+        }
+
+        /* Productos Grid */
+        .container {
+            max-width: 1200px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            font-size: 2.5em;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 50px;
+            background: linear-gradient(135deg, #D4AF37 0%, #FFD700 50%, #D4AF37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .product-card {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(212, 175, 55, 0.3);
+            border-color: rgba(212, 175, 55, 0.5);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 320px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+        }
+
+        .product-info {
+            padding: 25px;
+        }
+
+        .product-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #D4AF37 0%, #FFD700 100%);
+            color: #0a0a0a;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+        }
+
+        .product-name {
+            font-size: 1.6em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+
+        .product-description {
+            color: #999;
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .product-price {
+            font-size: 2em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #D4AF37 0%, #FFD700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .product-features {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .product-features li {
+            color: #999;
+            font-size: 0.9em;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+        }
+
+        .product-features li:last-child {
+            border-bottom: none;
+        }
+
+        .product-features li::before {
+            content: '✓';
+            color: #D4AF37;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .btn-buy {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #D4AF37 0%, #FFD700 100%);
+            color: #0a0a0a;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .btn-buy:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 25px rgba(212, 175, 55, 0.5);
+        }
+
+        .btn-buy:active {
+            transform: scale(0.98);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            margin: 5% auto;
+            padding: 40px;
+            border-radius: 18px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(212, 175, 55, 0.3);
+        }
+
+        .close {
+            color: #D4AF37;
+            float: right;
+            font-size: 32px;
+            font-weight: 300;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.3s;
+        }
+
+        .close:hover {
+            color: #FFD700;
+        }
+
+        .modal-content h3 {
+            background: linear-gradient(135deg, #D4AF37 0%, #FFD700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            font-weight: 700;
+            clear: both;
+        }
+
+        #resumenPedido {
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            line-height: 1.8;
+            color: #ffffff;
+        }
+
+        .modal-content label {
+            display: block;
+            color: #D4AF37;
+            font-weight: 600;
+            margin-bottom: 8px;
+            margin-top: 20px;
+            font-size: 0.95em;
+        }
+
+        .modal-content input,
+        .modal-content textarea {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            background: rgba(26, 26, 26, 0.8);
+            color: #ffffff;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .modal-content input:focus,
+        .modal-content textarea:focus {
+            outline: none;
+            border-color: #D4AF37;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .modal-content textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn-confirm {
+            width: 100%;
+            margin-top: 25px;
+            padding: 16px;
+            background: linear-gradient(135deg, #D4AF37 0%, #FFD700 100%);
+            color: #0a0a0a;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .btn-confirm:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 25px rgba(212, 175, 55, 0.5);
+        }
+
+        /* Footer */
+        footer {
+            background: #0a0a0a;
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
+            color: #ffffff;
+            text-align: center;
+            padding: 50px 20px;
+            margin-top: 80px;
+        }
+
+        footer h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #D4AF37 0%, #FFD700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        footer p {
+            color: #999;
+            margin: 8px 0;
+            font-size: 0.95em;
+        }
+
+        .loading-message {
+            text-align: center;
+            color: #D4AF37;
+            font-size: 1.3em;
+            padding: 80px 20px;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5em;
+            }
+
+            .hero p {
+                font-size: 1.1em;
+            }
+
+            .section-title {
+                font-size: 2em;
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 30px 20px;
+                margin: 10% auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">📱</span>
+                <div>
+                    <div class="logo-text-small">OutletTech</div>
+                    <div class="logo-text">Boyacá</div>
+                </div>
+            </div>
+            <button class="btn-admin-access" onclick="goToAdmin()" title="Admin">🔒</button>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>iPhone <span class="hero-highlight">Originales</span></h1>
+            <p>Tecnología de alta calidad con garantía y confianza.<br>Precios accesibles y atención personalizada.</p>
+            <div class="info-whatsapp">
+                <p>📱 Consulta disponibilidad por WhatsApp</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <h2 class="section-title">Nuestros Productos</h2>
+        <div class="products-grid" id="productsGrid">
+            <div class="loading-message">⏳ Cargando productos...</div>
+        </div>
+    </div>
+
+    <div id="modalCompra" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal()">&times;</span>
+            <h3>Completa tu consulta</h3>
+            <div id="resumenPedido"></div>
+            <label for="nombre">Tu nombre:</label>
+            <input type="text" id="nombre" placeholder="Nombre completo">
+            <label for="telefono">Teléfono:</label>
+            <input type="tel" id="telefono" placeholder="300 123 4567">
+            <label for="mensaje">Mensaje (opcional):</label>
+            <textarea id="mensaje" placeholder="Ej: Me interesa este modelo, ¿tienen en stock?"></textarea>
+            <button onclick="enviarConsulta()" class="btn-confirm">Enviar por WhatsApp</button>
+        </div>
+    </div>
+
+    <footer>
+        <h3>🍃 OutletTechBoyacá 🍃</h3>
+        <p>iPhone Originales • Garantía • Confianza</p>
+        <p>© 2025 Todos los derechos reservados</p>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const fromIntro = sessionStorage.getItem('fromIntro');
+        if (!fromIntro) {
+            window.location.href = 'index.html';
+        } else {
+            sessionStorage.removeItem('fromIntro');
+        }
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCUdstEpWfEwDRNGlxlWTqn3YBZon7fPDo",
+            authDomain: "dragon-rojo-restaurante.firebaseapp.com",
+            databaseURL: "https://dragon-rojo-restaurante-default-rtdb.firebaseio.com",
+            projectId: "dragon-rojo-restaurante",
+            storageBucket: "dragon-rojo-restaurante.firebasestorage.app",
+            messagingSenderId: "907364865038",
+            appId: "1:907364865038:web:c21124fa1c85536715985f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        let consultaActual = {};
+
+        function getWhatsAppNumber() {
+            return new Promise((resolve) => {
+                const configRef = ref(database, 'config/whatsapp');
+                onValue(configRef, (snapshot) => {
+                    const number = snapshot.val();
+                    resolve(number ? '57' + number : '573028599105');
+                }, { onlyOnce: true });
+            });
+        }
+
+        function formatPrice(price) {
+            return `$${parseInt(price).toLocaleString('es-CO')}`;
+        }
+
+        function renderProducts(productos) {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = '';
+
+            if (!productos || productos.length === 0) {
+                grid.innerHTML = '<div class="loading-message">📱 No hay productos disponibles</div>';
+                return;
+            }
+
+            productos.forEach(producto => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <img src="${producto.imagen}" alt="${producto.nombre}" class="product-image" onerror="this.src='https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=600&h=400&fit=crop'">
+                    <div class="product-info">
+                        <span class="product-badge">${producto.codigo}</span>
+                        <h2 class="product-name">${producto.nombre}</h2>
+                        <p class="product-description">${producto.descripcion}</p>
+                        <div class="product-price">${formatPrice(producto.precio)}</div>
+                        <ul class="product-features">
+                            <li>100% Original</li>
+                            <li>Garantía incluida</li>
+                            <li>Atención personalizada</li>
+                        </ul>
+                        <button class="btn-buy" onclick="window.mostrarFormulario('${producto.codigo}', '${producto.nombre.replace(/'/g, "\\'")}', '${formatPrice(producto.precio)}')">
+                            <span>💬</span>Consultar por WhatsApp
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        const productosRef = ref(database, 'platillos');
+        onValue(productosRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                const productosArray = Object.values(data).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+                renderProducts(productosArray);
+            } else {
+                document.getElementById('productsGrid').innerHTML = '<div class="loading-message">📱 No hay productos disponibles</div>';
+            }
+        });
+
+        window.mostrarFormulario = function(codigo, nombre, precio) {
+            consultaActual = { codigo, nombre, precio };
+            document.getElementById('resumenPedido').innerHTML = `
+                <strong>📱 Producto:</strong> ${codigo} - ${nombre}<br>
+                <strong>💰 Precio:</strong> ${precio}
+            `;
+            document.getElementById('modalCompra').style.display = 'block';
+            document.getElementById('nombre').value = '';
+            document.getElementById('telefono').value = '';
+            document.getElementById('mensaje').value = '';
+        };
+
+        window.cerrarModal = function() {
+            document.getElementById('modalCompra').style.display = 'none';
+        };
+
+        window.enviarConsulta = async function() {
+            const nombre = document.getElementById('nombre').value.trim();
+            const telefono = document.getElementById('telefono').value.trim();
+            const mensaje = document.getElementById('mensaje').value.trim();
+            
+            if (!nombre || !telefono) {
+                alert('⚠️ Por favor completa tu nombre y teléfono');
+                return;
+            }
+            
+            const whatsappNumber = await getWhatsAppNumber();
+            
+            let textoMensaje = `Hola, soy *${nombre}*%0A%0A` +
+                          `Estoy interesado en:%0A` +
+                          `📱 ${consultaActual.codigo} - ${consultaActual.nombre}%0A` +
+                          `💰 Precio: ${consultaActual.precio}%0A%0A` +
+                          `📞 Mi teléfono: ${telefono}`;
+            
+            if (mensaje) {
+                textoMensaje += `%0A%0A📝 Mensaje:%0A${encodeURIComponent(mensaje)}`;
+            }
+            
+            window.open(`https://wa.me/${whatsappNumber}?text=${textoMensaje}`, '_blank');
+            cerrarModal();
+        };
+
+        window.goToAdmin = function() {
+            window.location.href = 'admin.html';
+        };
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('modalCompra');
+            if (event.target == modal) {
+                cerrarModal();
+            }
+        };
+    </script>
+</body>
+</html>

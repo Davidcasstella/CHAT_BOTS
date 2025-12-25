@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido - Registro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            background: #0f0f1e;
+        }
+
+        /* Pantalla de Animación Inicial */
+        #welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: #000000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        #welcome-screen.hide {
+            opacity: 0;
+            transform: scale(1.1);
+            pointer-events: none;
+        }
+
+        .logo-container {
+            position: relative;
+            width: 600px;
+            height: 600px;
+            margin-bottom: 30px;
+        }
+
+        #canvas3d {
+            width: 100%;
+            height: 100%;
+        }
+
+        .welcome-text {
+            color: white;
+            font-size: 42px;
+            font-weight: 300;
+            margin-bottom: 20px;
+            animation: fadeInUp 1s ease;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .loading-bar {
+            width: 250px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .loading-progress {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            animation: load 3s ease forwards;
+        }
+
+        @keyframes load {
+            to { width: 100%; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Fondo con partículas animadas */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 15s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Contenedor del Formulario */
+        #form-container {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s;
+        }
+
+        #form-container.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .form-wrapper {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .form-content {
+            display: none;
+        }
+
+        .form-content.active {
+            display: block;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 28px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            color: #999;
+            position: relative;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+
+        .social-login {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .social-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .social-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-top: 10px;
+        }
+
+        .forgot-password a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .logo-container {
+                width: 400px;
+                height: 400px;
+            }
+            .welcome-text {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Pantalla de bienvenida animada -->
+    <div id="welcome-screen">
+        <div class="logo-container">
+            <canvas id="canvas3d"></canvas>
+        </div>
+        <h1 class="welcome-text">Bienvenido</h1>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+    </div>
+
+    <!-- Partículas de fondo -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Contenedor del formulario -->
+    <div id="form-container">
+        <div class="form-wrapper">
+            <div class="tabs">
+                <div class="tab active" data-tab="login">Iniciar Sesión</div>
+                <div class="tab" data-tab="register">Registrarse</div>
+            </div>
+
+            <!-- Formulario de Login -->
+            <div class="form-content active" id="login">
+                <h2>¡Qué bueno verte de nuevo!</h2>
+                <form>
+                    <div class="input-group">
+                        <label>Email</label>
+                        <input type="email" placeholder="tu@email.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Contraseña</label>
+                        <input type="password" placeholder="••••••••" required>
+                    </div>
+                    <div class="forgot-password">
+                        <a href="#">¿Olvidaste tu contraseña?</a>
+                    </div>
+                    <br>
+                    <button type="submit" class="btn">Iniciar Sesión</button>
+                </form>
+                <div class="divider">o continúa con</div>
+                <div class="social-login">
+                    <button class="social-btn">Google</button>
+                    <button class="social-btn">Facebook</button>
+                </div>
+            </div>
+
+            <!-- Formulario de Registro -->
+            <div class="form-content" id="register">
+                <h2>Crea tu cuenta</h2>
+                <form>
+                    <div class="input-group">
+                        <label>Nombre completo</label>
+                        <input type="text" placeholder="Juan Pérez" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Email</label>
+                        <input type="email" placeholder="tu@email.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Contraseña</label>
+                        <input type="password" placeholder="••••••••" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Confirmar contraseña</label>
+                        <input type="password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn">Crear Cuenta</button>
+                </form>
+                <div class="divider">o regístrate con</div>
+                <div class="social-login">
+                    <button class="social-btn">Google</button>
+                    <button class="social-btn">Facebook</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Animación 3D con esfera central y 7 anillos orbitales
+        const canvas = document.getElementById('canvas3d');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = 600;
+        canvas.height = 600;
+        
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        
+        // Partículas de la esfera central
+        const sphereParticles = [];
+        const particleCount = 1200;
+        const sphereRadius = 100;
+        
+        class SphereParticle {
+            constructor() {
+                this.reset();
+            }
+            
+            reset() {
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                
+                this.x = sphereRadius * Math.sin(phi) * Math.cos(theta);
+                this.y = sphereRadius * Math.sin(phi) * Math.sin(theta);
+                this.z = sphereRadius * Math.cos(phi);
+                
+                this.hue = (theta / (Math.PI * 2)) * 360;
+                this.size = Math.random() * 1.8 + 0.5;
+            }
+            
+            update(time) {
+                const rot = time * 0.0008;
+                const x = this.x;
+                const y = this.y * Math.cos(rot) - this.z * Math.sin(rot);
+                const z = this.y * Math.sin(rot) + this.z * Math.cos(rot);
+                
+                const x2 = x * Math.cos(rot * 0.7) - z * Math.sin(rot * 0.7);
+                const z2 = x * Math.sin(rot * 0.7) + z * Math.cos(rot * 0.7);
+                
+                this.projX = x2 + centerX;
+                this.projY = y + centerY;
+                this.projZ = z2;
+            }
+            
+            draw() {
+                const scale = 300 / (300 + this.projZ);
+                const x = this.projX;
+                const y = this.projY;
+                const size = this.size * scale;
+                
+                const brightness = (this.projZ + sphereRadius) / (sphereRadius * 2);
+                
+                ctx.fillStyle = `hsla(${this.hue}, 85%, ${50 + brightness * 30}%, ${0.6 + brightness * 0.4})`;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // Crear partículas de la esfera
+        for (let i = 0; i < particleCount; i++) {
+            sphereParticles.push(new SphereParticle());
+        }
+        
+        // 7 ANILLOS ORBITALES COMO UN ÁTOMO
+        const rings = [];
+        const ringConfig = [
+            { distance: 140, color: { h: 280, s: 100, l: 60 }, particles: 50, speed: 0.025, tiltX: 0, tiltY: 0 },      // Violeta - Horizontal
+            { distance: 165, color: { h: 200, s: 100, l: 55 }, particles: 55, speed: -0.020, tiltX: 60, tiltY: 0 },    // Cian - Diagonal
+            { distance: 190, color: { h: 320, s: 100, l: 60 }, particles: 60, speed: 0.022, tiltX: 0, tiltY: 90 },     // Magenta - Vertical
+            { distance: 215, color: { h: 120, s: 100, l: 50 }, particles: 65, speed: -0.018, tiltX: 45, tiltY: 45 },   // Verde - Diagonal cruzado
+            { distance: 240, color: { h: 60, s: 100, l: 55 }, particles: 70, speed: 0.024, tiltX: 30, tiltY: 60 },     // Amarillo - Inclinado
+            { distance: 265, color: { h: 0, s: 100, l: 55 }, particles: 75, speed: -0.016, tiltX: 75, tiltY: 30 },     // Rojo - Inclinado opuesto
+            { distance: 290, color: { h: 210, s: 100, l: 60 }, particles: 80, speed: 0.028, tiltX: 15, tiltY: 75 }     // Azul - Casi vertical
+        ];
+        
+        ringConfig.forEach((config, ringIndex) => {
+            const ring = [];
+            const tiltXRad = config.tiltX * (Math.PI / 180);
+            const tiltYRad = config.tiltY * (Math.PI / 180);
+            
+            for (let i = 0; i < config.particles; i++) {
+                const angle = (i / config.particles) * Math.PI * 2;
+                ring.push({
+                    angle: angle,
+                    speed: config.speed,
+                    distance: config.distance,
+                    size: Math.random() * 2 + 1.5,
+                    color: config.color,
+                    tiltX: tiltXRad,
+                    tiltY: tiltYRad,
+                    ringIndex: ringIndex,
+                    baseAlpha: 0.7 + Math.random() * 0.3
+                });
+            }
+            rings.push(ring);
+        });
+        
+        function animate() {
+            const time = Date.now();
+            
+            // Fondo oscuro con efecto de trail
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Dibujar los 7 anillos como un átomo
+            rings.forEach(ring => {
+                ring.forEach(p => {
+                    p.angle += p.speed;
+                    
+                    // Calcular posición base en el círculo
+                    let x = Math.cos(p.angle) * p.distance;
+                    let y = Math.sin(p.angle) * p.distance;
+                    let z = 0;
+                    
+                    // Rotar en eje X
+                    let y2 = y * Math.cos(p.tiltX) - z * Math.sin(p.tiltX);
+                    let z2 = y * Math.sin(p.tiltX) + z * Math.cos(p.tiltX);
+                    
+                    // Rotar en eje Y
+                    let x3 = x * Math.cos(p.tiltY) + z2 * Math.sin(p.tiltY);
+                    let z3 = -x * Math.sin(p.tiltY) + z2 * Math.cos(p.tiltY);
+                    
+                    // Proyección en pantalla
+                    const perspective = 400;
+                    const scale = perspective / (perspective + z3);
+                    
+                    const screenX = centerX + x3 * scale;
+                    const screenY = centerY + y2 * scale;
+                    
+                    // Calcular tamaño y transparencia basado en profundidad
+                    const finalSize = p.size * scale;
+                    const depthAlpha = (z3 + p.distance) / (p.distance * 2);
+                    const finalAlpha = p.baseAlpha * Math.max(0.3, depthAlpha);
+                    
+                    // Gradiente radial brillante
+                    const gradient = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, finalSize * 2.5);
+                    gradient.addColorStop(0, `hsla(${p.color.h}, ${p.color.s}%, ${p.color.l}%, ${finalAlpha})`);
+                    gradient.addColorStop(0.5, `hsla(${p.color.h}, ${p.color.s}%, ${p.color.l - 10}%, ${finalAlpha * 0.6})`);
+                    gradient.addColorStop(1, `hsla(${p.color.h}, ${p.color.s}%, ${p.color.l - 20}%, 0)`);
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, finalSize * 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Núcleo brillante
+                    ctx.fillStyle = `hsla(${p.color.h}, 100%, ${p.color.l + 25}%, ${finalAlpha * 1.2})`;
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, finalSize * 0.6, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            });
+            
+            // Ordenar y dibujar esfera central
+            sphereParticles.forEach(p => p.update(time));
+            sphereParticles.sort((a, b) => b.projZ - a.projZ);
+            sphereParticles.forEach(p => p.draw());
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+        
+        // Crear partículas de fondo
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 60; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // Animación de entrada
+        setTimeout(() => {
+            document.getElementById('welcome-screen').classList.add('hide');
+            setTimeout(() => {
+                document.getElementById('form-container').classList.add('show');
+            }, 400);
+        }, 3500);
+
+        // Cambio entre tabs
+        const tabs = document.querySelectorAll('.tab');
+        const formContents = document.querySelectorAll('.form-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                formContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === targetTab) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // Prevenir envío de formularios (para demo)
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                alert('¡Formulario enviado! (Esto es una demo)');
+            });
+        });
+    </script>
+</body>
+</html>

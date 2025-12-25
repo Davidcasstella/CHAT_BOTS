@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - OutletTechBoyacá</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Login */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .login-box {
+            background: white;
+            padding: 50px;
+            border-radius: 18px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-box h2 {
+            color: #1d1d1f;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2em;
+            font-weight: 700;
+        }
+
+        .login-logo {
+            text-align: center;
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #1d1d1f;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #d2d2d7;
+            background: white;
+            color: #1d1d1f;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #0071e3;
+        }
+
+        .password-toggle {
+            position: relative;
+        }
+
+        .password-toggle button {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #86868b;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 16px;
+            background: #0071e3;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-login:hover {
+            background: #0077ed;
+            transform: scale(1.02);
+        }
+
+        .error-message {
+            background: rgba(255, 59, 48, 0.1);
+            border: 1px solid #ff3b30;
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #ff3b30;
+            display: none;
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            display: none;
+        }
+
+        .admin-header {
+            background: white;
+            padding: 25px;
+            border-radius: 18px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .admin-header h1 {
+            color: #1d1d1f;
+            font-size: 2em;
+            font-weight: 700;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-config {
+            background: #ff9500;
+            color: white;
+        }
+
+        .btn-config:hover {
+            background: #ffa71a;
+            transform: scale(1.02);
+        }
+
+        .btn-volver {
+            background: #86868b;
+            color: white;
+        }
+
+        .btn-volver:hover {
+            background: #98989d;
+            transform: scale(1.02);
+        }
+
+        .btn-logout {
+            background: #ff3b30;
+            color: white;
+        }
+
+        .btn-logout:hover {
+            background: #ff453a;
+            transform: scale(1.02);
+        }
+
+        /* Config Section */
+        .config-section {
+            background: white;
+            padding: 35px;
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .config-section h2 {
+            color: #1d1d1f;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .config-form {
+            max-width: 600px;
+        }
+
+        .config-form label {
+            display: block;
+            color: #1d1d1f;
+            font-size: 0.95em;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .config-form input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #d2d2d7;
+            background: white;
+            color: #1d1d1f;
+            border-radius: 12px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        .config-form input:focus {
+            outline: none;
+            border-color: #0071e3;
+        }
+
+        .btn-save-config {
+            background: #34c759;
+            color: white;
+        }
+
+        .btn-save-config:hover {
+            background: #30d158;
+        }
+
+        .success-message {
+            background: rgba(52, 199, 89, 0.1);
+            border: 1px solid #34c759;
+            padding: 14px;
+            border-radius: 12px;
+            margin-top: 15px;
+            text-align: center;
+            color: #34c759;
+            display: none;
+        }
+
+        .input-hint {
+            font-size: 13px;
+            color: #86868b;
+            margin-top: -15px;
+            margin-bottom: 15px;
+        }
+
+        /* Products Section */
+        .products-section {
+            background: white;
+            padding: 35px;
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .products-section h2 {
+            color: #1d1d1f;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .add-product-top {
+            margin-bottom: 30px;
+        }
+
+        .btn-add-new {
+            background: #34c759;
+            color: white;
+            font-size: 17px;
+            padding: 15px 30px;
+        }
+
+        .btn-add-new:hover {
+            background: #30d158;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .product-card {
+            background: #f5f5f7;
+            border-radius: 18px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: move;
+            border: 2px solid transparent;
+        }
+
+        .product-card:hover {
+            border-color: #0071e3;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 113, 227, 0.2);
+        }
+
+        .product-card.dragging {
+            opacity: 0.5;
+        }
+
+        .product-card.drag-over {
+            border-color: #34c759;
+            background: rgba(52, 199, 89, 0.05);
+        }
+
+        .drag-handle {
+            background: linear-gradient(135deg, #0071e3 0%, #00a8ff 100%);
+            padding: 12px;
+            text-align: center;
+            color: white;
+            font-weight: 600;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .product-image-container {
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .product-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-info {
+            padding: 20px;
+        }
+
+        .product-view .info-row {
+            margin-bottom: 15px;
+        }
+
+        .product-view .info-row label {
+            display: block;
+            color: #86868b;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .product-view .info-row .value {
+            color: #1d1d1f;
+            font-size: 1.05em;
+            font-weight: 500;
+        }
+
+        .product-view .codigo {
+            background: linear-gradient(135deg, #0071e3 0%, #00a8ff 100%);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-block;
+            font-size: 0.9em;
+        }
+
+        .product-view .precio {
+            color: #1d1d1f;
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .product-edit label {
+            display: block;
+            color: #1d1d1f;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            margin-top: 12px;
+            font-weight: 600;
+        }
+
+        .product-edit input,
+        .product-edit textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #d2d2d7;
+            background: white;
+            color: #1d1d1f;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-family: inherit;
+        }
+
+        .product-edit input:focus,
+        .product-edit textarea:focus {
+            outline: none;
+            border-color: #0071e3;
+        }
+
+        .product-edit textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-edit {
+            flex: 1;
+            background: #0071e3;
+            color: white;
+            justify-content: center;
+        }
+
+        .btn-edit:hover {
+            background: #0077ed;
+        }
+
+        .btn-delete {
+            background: #ff3b30;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #ff453a;
+        }
+
+        .btn-save {
+            flex: 1;
+            background: #34c759;
+            color: white;
+            justify-content: center;
+        }
+
+        .btn-save:hover {
+            background: #30d158;
+        }
+
+        .btn-cancel {
+            flex: 1;
+            background: #86868b;
+            color: white;
+            justify-content: center;
+        }
+
+        .btn-cancel:hover {
+            background: #98989d;
+        }
+
+        .add-product-card {
+            background: white;
+            border: 3px dashed #34c759;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 18px;
+        }
+
+        .add-product-card:hover {
+            background: rgba(52, 199, 89, 0.05);
+            border-color: #30d158;
+            transform: scale(1.02);
+        }
+
+        .add-product-content {
+            text-align: center;
+            color: #34c759;
+        }
+
+        .add-product-content .icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+
+        .add-product-content h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .add-product-content p {
+            color: #86868b;
+        }
+
+        @media (max-width: 768px) {
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .header-buttons {
+                width: 100%;
+            }
+
+            .header-buttons .btn {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container" id="loginContainer">
+        <div class="login-box">
+            <div class="login-logo"></div>
+            <h2>Acceso Admin</h2>
+            <div class="error-message" id="errorMessage">Usuario o contraseña incorrectos</div>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="username">Usuario</label>
+                    <input type="text" id="username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <div class="password-toggle">
+                        <input type="password" id="password" required autocomplete="current-password">
+                        <button type="button" onclick="togglePassword()">👁️</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-login">Ingresar</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="admin-panel" id="adminPanel">
+        <div class="container">
+            <div class="admin-header">
+                <h1> OutletTechBoyacá</h1>
+                <div class="header-buttons">
+                    <button class="btn btn-config" onclick="toggleConfig()">⚙️ Configuración</button>
+                    <button class="btn btn-volver" onclick="goToTienda()">🏠 Ver Tienda</button>
+                    <button class="btn btn-logout" onclick="logout()">🚪 Salir</button>
+                </div>
+            </div>
+
+            <div class="config-section" id="configSection">
+                <h2>⚙️ Configuración de WhatsApp</h2>
+                <div class="config-form">
+                    <label for="whatsappNumber">Número de WhatsApp (10 dígitos)</label>
+                    <input type="text" id="whatsappNumber" placeholder="3001234567" maxlength="10" pattern="[0-9]{10}">
+                    <p class="input-hint">⚠️ Ingresa solo 10 dígitos sin espacios (ej: 3001234567)</p>
+                    <button class="btn btn-save-config" onclick="saveConfig()">💾 Guardar</button>
+                    <div class="success-message" id="successMessage">✅ Configuración guardada</div>
+                </div>
+            </div>
+
+            <div class="products-section">
+                <h2>📱 Gestión de Productos</h2>
+                
+                <div class="add-product-top">
+                    <button class="btn btn-add-new" onclick="addNewProduct()">➕ Agregar Producto</button>
+                </div>
+
+                <p style="color: #86868b; margin-bottom: 20px;">💡 <strong>Tip:</strong> Arrastra las tarjetas para cambiar el orden</p>
+
+                <div class="products-grid" id="productsGrid">
+                    <div style="color: #86868b; text-align: center; padding: 40px; width: 100%; grid-column: 1 / -1;">⏳ Cargando productos...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCUdstEpWfEwDRNGlxlWTqn3YBZon7fPDo",
+            authDomain: "dragon-rojo-restaurante.firebaseapp.com",
+            databaseURL: "https://dragon-rojo-restaurante-default-rtdb.firebaseio.com",
+            projectId: "dragon-rojo-restaurante",
+            storageBucket: "dragon-rojo-restaurante.firebasestorage.app",
+            messagingSenderId: "907364865038",
+            appId: "1:907364865038:web:c21124fa1c85536715985f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        const ADMIN_USERNAME = 'admin';
+        const ADMIN_PASSWORD = 'tech2025';
+
+        let productos = {};
+        let editingId = null;
+        let draggedElement = null;
+
+        function setupEventListeners() {
+            checkAuth();
+            loadWhatsAppConfig();
+            loadProductos();
+        }
+
+        function checkAuth() {
+            const isLoggedIn = localStorage.getItem('adminLoggedIn');
+            if (isLoggedIn === 'true') {
+                showAdminPanel();
+            }
+        }
+
+        window.handleLogin = function(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                localStorage.setItem('adminLoggedIn', 'true');
+                showAdminPanel();
+            } else {
+                document.getElementById('errorMessage').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('errorMessage').style.display = 'none';
+                }, 3000);
+            }
+        };
+
+        window.togglePassword = function() {
+            const passwordInput = document.getElementById('password');
+            passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+        };
+
+        function showAdminPanel() {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+        }
+
+        window.logout = function() {
+            localStorage.removeItem('adminLoggedIn');
+            location.reload();
+        };
+
+        window.goToTienda = function() {
+            sessionStorage.setItem('fromIntro', 'true');
+            window.location.href = 'tienda.html';
+        };
+
+        window.toggleConfig = function() {
+            const configSection = document.getElementById('configSection');
+            configSection.style.display = configSection.style.display === 'none' || configSection.style.display === '' ? 'block' : 'none';
+        };
+
+        function loadWhatsAppConfig() {
+            const configRef = ref(database, 'config/whatsapp');
+            onValue(configRef, (snapshot) => {
+                const number = snapshot.val();
+                if (number) {
+                    document.getElementById('whatsappNumber').value = number;
+                }
+            });
+        }
+
+        window.saveConfig = async function() {
+            const numberInput = document.getElementById('whatsappNumber');
+            let number = numberInput.value.replace(/\D/g, '');
+
+            if (number.length !== 10) {
+                alert('⚠️ Ingresa exactamente 10 dígitos');
+                return;
+            }
+
+            try {
+                await set(ref(database, 'config/whatsapp'), number);
+                const successMsg = document.getElementById('successMessage');
+                successMsg.style.display = 'block';
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 3000);
+            } catch (error) {
+                alert('❌ Error al guardar');
+            }
+        };
+
+        function formatPrice(price) {
+            return `$${parseInt(price).toLocaleString('es-CO')}`;
+        }
+
+        function loadProductos() {
+            const productosRef = ref(database, 'platillos');
+            onValue(productosRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    productos = data;
+                    renderProductos();
+                } else {
+                    document.getElementById('productsGrid').innerHTML = '<div style="color: #86868b; text-align: center; padding: 40px; width: 100%; grid-column: 1 / -1;">📱 No hay productos</div>';
+                }
+            });
+        }
+
+        function renderProductos() {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = '';
+
+            const productosArray = Object.values(productos).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+
+            productosArray.forEach(producto => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.draggable = editingId === null;
+                card.dataset.id = producto.id;
+                
+                if (editingId === null) {
+                    card.addEventListener('dragstart', handleDragStart);
+                    card.addEventListener('dragend', handleDragEnd);
+                    card.addEventListener('dragover', handleDragOver);
+                    card.addEventListener('drop', handleDrop);
+                    card.addEventListener('dragleave', handleDragLeave);
+                }
+
+                card.innerHTML = editingId === producto.id ? renderEditMode(producto) : renderViewMode(producto);
+                grid.appendChild(card);
+            });
+
+            const addCard = document.createElement('div');
+            addCard.className = 'product-card add-product-card';
+            addCard.onclick = addNewProduct;
+            addCard.innerHTML = `
+                <div class="add-product-content">
+                    <div class="icon">➕</div>
+                    <h3>Agregar Producto</h3>
+                    <p>Clic para crear nuevo</p>
+                </div>
+            `;
+            grid.appendChild(addCard);
+        }
+
+        function renderViewMode(producto) {
+            return `
+                <div class="drag-handle">⋮⋮ Arrastra para reordenar</div>
+                <div class="product-image-container">
+                    <img src="${producto.imagen}" alt="${producto.nombre}">
+                </div>
+                <div class="product-info product-view">
+                    <div class="info-row">
+                        <label>CÓDIGO</label>
+                        <div class="value"><span class="codigo">${producto.codigo}</span></div>
+                    </div>
+                    <div class="info-row">
+                        <label>NOMBRE</label>
+                        <div class="value">${producto.nombre}</div>
+                    </div>
+                    <div class="info-row">
+                        <label>DESCRIPCIÓN</label>
+                        <div class="value">${producto.descripcion}</div>
+                    </div>
+                    <div class="info-row">
+                        <label>PRECIO</label>
+                        <div class="value precio">${formatPrice(producto.precio)}</div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="btn btn-edit" onclick="window.startEdit('${producto.id}')">✏️ Editar</button>
+                        <button class="btn btn-delete" onclick="window.deleteProduct('${producto.id}')">🗑️</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderEditMode(producto) {
+            return `
+                <div class="product-image-container">
+                    <img src="${producto.imagen}" alt="${producto.nombre}">
+                </div>
+                <div class="product-info product-edit">
+                    <label>Código</label>
+                    <input type="text" id="edit-codigo" value="${producto.codigo}">
+                    <label>Nombre</label>
+                    <input type="text" id="edit-nombre" value="${producto.nombre}">
+                    <label>Descripción</label>
+                    <textarea id="edit-descripcion">${producto.descripcion}</textarea>
+                    <label>Precio</label>
+                    <input type="text" id="edit-precio" value="${producto.precio}">
+                    <label>URL Imagen</label>
+                    <input type="text" id="edit-imagen" value="${producto.imagen}">
+                    <div class="product-actions">
+                        <button class="btn btn-save" onclick="window.saveEdit('${producto.id}')">💾 Guardar</button>
+                        <button class="btn btn-cancel" onclick="window.cancelEdit()">❌ Cancelar</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.product-card').forEach(card => {
+                card.classList.remove('drag-over');
+            });
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (this !== draggedElement && !this.classList.contains('add-product-card')) {
+                this.classList.add('drag-over');
+            }
+            return false;
+        }
+
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+
+        async function handleDrop(e) {
+            if (e.stopPropagation) e.stopPropagation();
+            if (draggedElement !== this && !this.classList.contains('add-product-card')) {
+                const draggedId = draggedElement.dataset.id;
+                const targetId = this.dataset.id;
+                const productosArray = Object.values(productos).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+                const draggedIndex = productosArray.findIndex(p => p.id === draggedId);
+                const targetIndex = productosArray.findIndex(p => p.id === targetId);
+                const [removed] = productosArray.splice(draggedIndex, 1);
+                productosArray.splice(targetIndex, 0, removed);
+
+                try {
+                    for (let i = 0; i < productosArray.length; i++) {
+                        await set(ref(database, `platillos/${productosArray[i].id}/orden`), i + 1);
+                    }
+                    alert('✅ Orden guardado');
+                } catch (error) {
+                    alert('❌ Error al guardar');
+                }
+            }
+            this.classList.remove('drag-over');
+            return false;
+        }
+
+        window.startEdit = function(id) {
+            editingId = id;
+            renderProductos();
+        };
+
+        window.cancelEdit = function() {
+            editingId = null;
+            renderProductos();
+        };
+
+        window.saveEdit = async function(id) {
+            const codigo = document.getElementById('edit-codigo').value.trim();
+            const nombre = document.getElementById('edit-nombre').value.trim();
+            const descripcion = document.getElementById('edit-descripcion').value.trim();
+            const precio = document.getElementById('edit-precio').value.replace(/\D/g, '');
+            const imagen = document.getElementById('edit-imagen').value.trim();
+
+            if (!codigo || !nombre || !descripcion || !precio || !imagen) {
+                alert('⚠️ Completa todos los campos');
+                return;
+            }
+
+            try {
+                await set(ref(database, `platillos/${id}`), {
+                    id, codigo, nombre, descripcion, precio, imagen,
+                    orden: productos[id].orden || 0
+                });
+                editingId = null;
+                alert('✅ Producto actualizado');
+            } catch (error) {
+                alert('❌ Error al guardar');
+            }
+        };
+
+        window.deleteProduct = async function(id) {
+            if (!confirm('¿Eliminar este producto?')) return;
+            try {
+                await remove(ref(database, `platillos/${id}`));
+                alert('✅ Producto eliminado');
+            } catch (error) {
+                alert('❌ Error al eliminar');
+            }
+        };
+
+        window.addNewProduct = async function() {
+            const newId = `p${Date.now()}`;
+            const productosArray = Object.values(productos);
+            const maxOrden = productosArray.length > 0 ? Math.max(...productosArray.map(p => p.orden || 0)) : 0;
+            
+            const newProduct = {
+                id: newId,
+                codigo: `IP${productosArray.length + 1}`,
+                nombre: 'Nuevo iPhone',
+                descripcion: 'Descripción del producto',
+                precio: '2500000',
+                imagen: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=600&h=400&fit=crop',
+                orden: maxOrden + 1
+            };
+
+            try {
+                await set(ref(database, `platillos/${newId}`), newProduct);
+                editingId = newId;
+                alert('✅ Producto agregado. Edítalo ahora.');
+            } catch (error) {
+                alert('❌ Error al agregar');
+            }
+        };
+
+        setupEventListeners();
+    </script>
+</body>
+</html>

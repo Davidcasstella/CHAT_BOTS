@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Neuronal IA - Control Dual con Rotación</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Segoe UI', sans-serif; }
+        
+        #ui-container {
+            position: absolute; top: 20px; left: 20px; width: 280px;
+            padding: 20px; background: rgba(20, 20, 30, 0.95);
+            border-radius: 15px; color: white; border: 2px solid #00d2ff;
+            pointer-events: auto; z-index: 100;
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.3);
+        }
+
+        h2 { 
+            margin: 0 0 15px 0; font-size: 1.2rem; 
+            background: linear-gradient(135deg, #00d2ff, #ff00ff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
+        
+        .canvas-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+        }
+        
+        .label-left {
+            color: #00d2ff;
+            font-weight: bold;
+        }
+        
+        .label-right {
+            color: #ff00ff;
+            font-weight: bold;
+        }
+        
+        .shape-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        
+        button {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white; border: 1px solid #00d2ff;
+            padding: 10px; border-radius: 8px; cursor: pointer;
+            transition: all 0.3s; font-size: 0.85rem;
+        }
+        button:hover { 
+            background: linear-gradient(135deg, #16213e, #0f3460);
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.5);
+            transform: translateY(-2px);
+        }
+        button.active { 
+            background: linear-gradient(135deg, #00d2ff, #9d00ff);
+            border-color: #fff;
+            box-shadow: 0 0 20px rgba(157, 0, 255, 0.6);
+        }
+        
+        #debug-panel {
+            margin-top: 15px; padding: 15px; 
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px; border: 1px solid #333;
+            font-family: 'Courier New', monospace; font-size: 0.8rem;
+        }
+        
+        .debug-row {
+            display: flex; justify-content: space-between;
+            margin: 5px 0; padding: 3px 0;
+            border-bottom: 1px solid #222;
+        }
+        
+        .debug-label { color: #00d2ff; }
+        .debug-value { color: #00ff88; font-weight: bold; }
+        
+        #camera-container {
+            position: absolute; top: 20px; right: 20px;
+            width: 320px; height: 240px;
+            border: 3px solid #9d00ff; border-radius: 12px;
+            overflow: hidden; z-index: 50;
+            box-shadow: 0 0 30px rgba(157, 0, 255, 0.5);
+            background: #000;
+        }
+        
+        #input-video { 
+            width: 100%; height: 100%;
+            transform: scaleX(1);
+            object-fit: cover;
+        }
+        
+        #canvas-overlay {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+        }
+        
+        #loading {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: white; font-size: 1.8rem; text-align: center;
+            background: rgba(0, 0, 0, 0.8); padding: 30px 50px;
+            border-radius: 15px; border: 2px solid #00d2ff;
+            z-index: 200;
+        }
+        
+        .loading-spinner {
+            width: 50px; height: 50px; margin: 20px auto;
+            border: 4px solid rgba(0, 210, 255, 0.3);
+            border-top: 4px solid #00d2ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .gesture-hint {
+            position: absolute; bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px 30px; border-radius: 10px;
+            color: white; font-size: 0.85rem;
+            border: 2px solid #9d00ff;
+            z-index: 100;
+            text-align: center;
+            max-width: 80%;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading">
+        <div class="loading-spinner"></div>
+        Cargando Modelos de IA...<br>
+        <small style="color: #00d2ff;">Iniciando detección de manos</small>
+    </div>
+
+    <div id="ui-container">
+        <h2>🧠 Sistema Dual de Control</h2>
+        
+        <div class="canvas-labels">
+            <span class="label-left">🖐️ IZQ: Mover/Rotar</span>
+            <span class="label-right">🤏 DER: Extraer</span>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <button id="btn-mirror" style="width: 100%; background: linear-gradient(135deg, #9d00ff, #00d2ff);">
+                🔄 Modo: Normal
+            </button>
+        </div>
+        <div style="margin-bottom: 15px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
+    <button id="btn-particles-low" style="font-size: 0.75rem;">5K</button>
+    <button id="btn-particles-mid" class="active" style="font-size: 0.75rem;">10K</button>
+    <button id="btn-particles-high" style="font-size: 0.75rem;">20K</button>
+</div>
+                
+        <div class="shape-grid">
+            <button id="btn-neural" class="active">Red Neural</button>
+            <button id="btn-dna">ADN Helix</button>
+            <button id="btn-prism">Prismas 3D</button>
+            <button id="btn-galaxy">Galaxia</button>
+            <button id="btn-cube">Tesseract</button>
+            <button id="btn-torus">Torus Knot</button>
+            <button id="btn-sphere">Esfera Dyson</button>
+            <button id="btn-wave">Onda Cuántica</button>
+        </div>
+        
+        <div id="debug-panel">
+            <div class="debug-row">
+                <span class="debug-label">Manos:</span>
+                <span class="debug-value" id="hands-count">0</span>
+            </div>
+            <div class="debug-row">
+                <span class="debug-label">Mano Izq:</span>
+                <span class="debug-value" id="left-gesture">-</span>
+            </div>
+            <div class="debug-row">
+                <span class="debug-label">Mano Der:</span>
+                <span class="debug-value" id="right-gesture">-</span>
+            </div>
+            <div class="debug-row">
+                <span class="debug-label">Pos X/Y:</span>
+                <span class="debug-value" id="pos-xy">0.00 / 0.00</span>
+            </div>
+            <div class="debug-row">
+                <span class="debug-label">Rot Z:</span>
+                <span class="debug-value" id="rotation-z-value">0°</span>
+            </div>
+            <div class="debug-row">
+                <span class="debug-label">Rot Y:</span>
+                <span class="debug-value" id="rotation-y-value">0°</span>
+            </div>
+            <div class="debug-row">
+                <span class="debug-label">Escala:</span>
+                <span class="debug-value" id="scale-value">1.00</span>
+            </div>
+            <div class="debug-row">
+                <span class="debug-label">Partícula:</span>
+                <span class="debug-value" id="grabbed-particle">Ninguna</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="camera-container">
+        <video id="input-video"></video>
+        <canvas id="canvas-overlay"></canvas>
+    </div>
+    
+<div class="gesture-hint" id="gesture-hint">
+    🖐️ <span style="color: #00d2ff;">IZQ:</span> Mueve ⬆️⬇️⬅️➡️ | 🔄 Gira mano (Rot-Z) | ✊ Puño (↓escala +Rot-Y) | ✋ Abierta (↑escala +Rot-Y)<br>
+    🤏 <span style="color: #ff00ff;">DER:</span> Pinza para extraer partículas (rojas + grandes)
+</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <script>
+        // ===== CONFIGURACIÓN THREE.JS =====
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 40;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // ===== SISTEMA DE PARTÍCULAS =====
+        let PARTICLE_COUNT = 10000;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(PARTICLE_COUNT * 3);
+        const targetPositions = new Float32Array(PARTICLE_COUNT * 3);
+        const colors = new Float32Array(PARTICLE_COUNT * 3);
+        const sizes = new Float32Array(PARTICLE_COUNT);
+
+        for(let i = 0; i < PARTICLE_COUNT; i++) {
+            const idx = i * 3;
+            positions[idx] = (Math.random() - 0.5) * 60;
+            positions[idx+1] = (Math.random() - 0.5) * 60;
+            positions[idx+2] = (Math.random() - 0.5) * 60;
+            targetPositions[idx] = positions[idx];
+            targetPositions[idx+1] = positions[idx+1];
+            targetPositions[idx+2] = positions[idx+2];
+            
+            colors[idx] = 1;
+            colors[idx+1] = 1;
+            colors[idx+2] = 1;
+            
+            sizes[i] = 0.4;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+        const material = new THREE.ShaderMaterial({
+            uniforms: {},
+            vertexShader: `
+                attribute float size;
+                attribute vec3 color;
+                varying vec3 vColor;
+                void main() {
+                    vColor = color;
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    gl_PointSize = size * (300.0 / -mvPosition.z);
+                    gl_Position = projectionMatrix * mvPosition;
+                }
+            `,
+            fragmentShader: `
+                varying vec3 vColor;
+                void main() {
+                    float dist = length(gl_PointCoord - vec2(0.5));
+                    if(dist > 0.5) discard;
+                    gl_FragColor = vec4(vColor, 1.0 - dist * 2.0);
+                }
+            `,
+            transparent: true,
+            blending: THREE.AdditiveBlending
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+
+        // ===== LÍNEAS DE CONEXIÓN =====
+        const lineGeometry = new THREE.BufferGeometry();
+        const linePositions = new Float32Array(4000 * 2 * 3);
+        lineGeometry.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
+        const lineMaterial = new THREE.LineBasicMaterial({
+            color: 0x00d2ff, transparent: true, opacity: 0.15,
+            blending: THREE.AdditiveBlending
+        });
+        const lines = new THREE.LineSegments(lineGeometry, lineMaterial);
+        scene.add(lines);
+
+        // ===== PRISMAS =====
+        const meshes = [];
+        
+        function createPrisms() {
+            meshes.forEach(m => scene.remove(m));
+            meshes.length = 0;
+            
+            for(let i = 0; i < 10; i++) {
+                const geometries = [
+                    new THREE.TetrahedronGeometry(2.5),
+                    new THREE.OctahedronGeometry(2.5),
+                    new THREE.IcosahedronGeometry(2.5),
+                    new THREE.DodecahedronGeometry(2.5),
+                ];
+                
+                const geo = geometries[Math.floor(Math.random() * geometries.length)];
+                const mat = new THREE.MeshBasicMaterial({
+                    color: Math.random() * 0xffffff,
+                    wireframe: true, transparent: true, opacity: 0.5
+                });
+                
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(
+                    (Math.random() - 0.5) * 35,
+                    (Math.random() - 0.5) * 35,
+                    (Math.random() - 0.5) * 35
+                );
+                mesh.rotationSpeed = {
+                    x: (Math.random() - 0.5) * 0.03,
+                    y: (Math.random() - 0.5) * 0.03,
+                    z: (Math.random() - 0.5) * 0.03
+                };
+                meshes.push(mesh);
+                scene.add(mesh);
+            }
+        }
+
+
+        // ===== LÓGICA DE FORMAS =====
+let currentShape = 'neural';
+
+function updateTargets(shape) {
+    currentShape = shape;
+    if(shape !== 'prism') {
+        meshes.forEach(m => scene.remove(m));
+        meshes.length = 0;
+    }
+    
+    for(let i = 0; i < PARTICLE_COUNT; i++) {
+        const idx = i * 3;
+        let x, y, z;
+        
+        if(shape === 'neural') {
+            const layer = Math.floor(i / (PARTICLE_COUNT / 6));
+            const inLayer = i % (PARTICLE_COUNT / 6);
+            x = (layer - 3) * 7 + (Math.random() - 0.5) * 2;
+            const angle = (inLayer / (PARTICLE_COUNT / 6)) * Math.PI * 2;
+            const radius = 7 + Math.random() * 3;
+            y = Math.cos(angle) * radius;
+            z = Math.sin(angle) * radius;
+            
+        } else if(shape === 'dna') {
+            const t = (i / PARTICLE_COUNT) * Math.PI * 10;
+            const helix = i % 2 === 0 ? 1 : -1;
+            x = t * 2 - 18;
+            y = Math.cos(t) * 8 * helix;
+            z = Math.sin(t) * 8 * helix;
+            
+        } else if(shape === 'prism') {
+            if(meshes.length === 0) createPrisms();
+            const r = Math.random() * 28;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.random() * Math.PI;
+            x = r * Math.sin(phi) * Math.cos(theta);
+            y = r * Math.sin(phi) * Math.sin(theta);
+            z = r * Math.cos(phi);
+            
+        } else if(shape === 'galaxy') {
+            const angle = (i / PARTICLE_COUNT) * Math.PI * 8;
+            const radius = (i / PARTICLE_COUNT) * 22;
+            x = Math.cos(angle) * radius;
+            z = Math.sin(angle) * radius;
+            y = (Math.random() - 0.5) * 4;
+            
+        } else if(shape === 'cube') {
+            const size = 13;
+            const choice = Math.floor(Math.random() * 12);
+            if(choice < 8) {
+                x = (Math.random() > 0.5 ? 1 : -1) * size;
+                y = (Math.random() > 0.5 ? 1 : -1) * size;
+                z = (Math.random() > 0.5 ? 1 : -1) * size;
+            } else {
+                x = (Math.random() - 0.5) * size * 2;
+                y = (Math.random() > 0.5 ? 1 : -1) * size;
+                z = (Math.random() > 0.5 ? 1 : -1) * size;
+            }
+            
+        } else if(shape === 'torus') {
+            const t = (i / PARTICLE_COUNT) * Math.PI * 2;
+            const p = 3, q = 2, R = 12, r = 5;
+            x = (R + r * Math.cos(q * t)) * Math.cos(p * t);
+            y = (R + r * Math.cos(q * t)) * Math.sin(p * t);
+            z = r * Math.sin(q * t);
+            
+        } else if(shape === 'sphere') {
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            const radius = 15;
+            x = radius * Math.sin(phi) * Math.cos(theta);
+            y = radius * Math.sin(phi) * Math.sin(theta);
+            z = radius * Math.cos(phi);
+            
+        } else if(shape === 'wave') {
+            const gridSize = Math.ceil(Math.sqrt(PARTICLE_COUNT));
+            const row = Math.floor(i / gridSize);
+            const col = i % gridSize;
+            x = (col / gridSize - 0.5) * 40;
+            z = (row / gridSize - 0.5) * 40;
+            y = Math.sin(x * 0.3) * Math.cos(z * 0.3) * 5;
+        }
+        
+        targetPositions[idx] = x;
+        targetPositions[idx+1] = y;
+        targetPositions[idx+2] = z;
+    }
+}
+
+updateTargets('neural');
+// Botones para cambiar cantidad de partículas
+document.getElementById('btn-particles-low').addEventListener('click', () => {
+    changeParticleCount(5000);
+    document.querySelectorAll('#btn-particles-low, #btn-particles-mid, #btn-particles-high').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-particles-low').classList.add('active');
+});
+
+document.getElementById('btn-particles-mid').addEventListener('click', () => {
+    changeParticleCount(10000);
+    document.querySelectorAll('#btn-particles-low, #btn-particles-mid, #btn-particles-high').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-particles-mid').classList.add('active');
+});
+
+document.getElementById('btn-particles-high').addEventListener('click', () => {
+    changeParticleCount(20000);
+    document.querySelectorAll('#btn-particles-low, #btn-particles-mid, #btn-particles-high').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-particles-high').classList.add('active');
+});
+
+function changeParticleCount(newCount) {
+    PARTICLE_COUNT = newCount;
+    
+    // Recrear geometría
+    const newPositions = new Float32Array(PARTICLE_COUNT * 3);
+    const newTargetPositions = new Float32Array(PARTICLE_COUNT * 3);
+    const newColors = new Float32Array(PARTICLE_COUNT * 3);
+    const newSizes = new Float32Array(PARTICLE_COUNT);
+    
+    for(let i = 0; i < PARTICLE_COUNT; i++) {
+        const idx = i * 3;
+        newPositions[idx] = (Math.random() - 0.5) * 60;
+        newPositions[idx+1] = (Math.random() - 0.5) * 60;
+        newPositions[idx+2] = (Math.random() - 0.5) * 60;
+        newTargetPositions[idx] = newPositions[idx];
+        newTargetPositions[idx+1] = newPositions[idx+1];
+        newTargetPositions[idx+2] = newPositions[idx+2];
+        
+        newColors[idx] = 1;
+        newColors[idx+1] = 1;
+        newColors[idx+2] = 1;
+        
+        newSizes[i] = 0.4;
+    }
+    
+    // Actualizar arrays globales
+    positions.set(newPositions);
+    targetPositions.set(newTargetPositions);
+    colors.set(newColors);
+    sizes.set(newSizes);
+    
+    // Actualizar geometría
+    geometry.setAttribute('position', new THREE.BufferAttribute(newPositions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(newColors, 3));
+    geometry.setAttribute('size', new THREE.BufferAttribute(newSizes, 1));
+    
+    // Recargar forma actual
+    updateTargets(currentShape);
+}
+
+// ===== ACTUALIZAR CONEXIONES =====
+function updateNeuralConnections() {
+    const pos = geometry.attributes.position.array;
+    const linePos = lineGeometry.attributes.position.array;
+    let lineIndex = 0;
+    
+    for(let i = 0; i < PARTICLE_COUNT && lineIndex < 4000 * 6; i += 10) {
+        const i1 = i * 3;
+        for(let j = i + 10; j < PARTICLE_COUNT && lineIndex < 4000 * 6; j += 10) {
+            const i2 = j * 3;
+            const dx = pos[i1] - pos[i2];
+            const dy = pos[i1+1] - pos[i2+1];
+            const dz = pos[i1+2] - pos[i2+2];
+            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+            
+            if(dist < 7) {
+                linePos[lineIndex++] = pos[i1];
+                linePos[lineIndex++] = pos[i1+1];
+                linePos[lineIndex++] = pos[i1+2];
+                linePos[lineIndex++] = pos[i2];
+                linePos[lineIndex++] = pos[i2+1];
+                linePos[lineIndex++] = pos[i2+2];
+            }
+        }
+    }
+    lineGeometry.attributes.position.needsUpdate = true;
+}
+
+// ===== EVENTOS DE BOTONES =====
+function setBtn(id, shape) {
+    document.getElementById(id).addEventListener('click', () => {
+        updateTargets(shape);
+        document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    });
+}
+
+setBtn('btn-neural', 'neural');
+setBtn('btn-dna', 'dna');
+setBtn('btn-prism', 'prism');
+setBtn('btn-galaxy', 'galaxy');
+setBtn('btn-cube', 'cube');
+setBtn('btn-torus', 'torus');
+setBtn('btn-sphere', 'sphere');
+setBtn('btn-wave', 'wave');
+
+// ===== VARIABLES DE CONTROL =====
+let handData = {
+    left: null,
+    right: null,
+    count: 0
+};
+
+let controlState = {
+    positionX: 0,
+    positionY: 0,
+    targetX: 0,
+    targetY: 0,
+    rotationZ: 0,
+    targetRotationZ: 0,
+    rotationY: 0,
+    targetRotationY: 0,
+    scale: 1.0,
+    targetScale: 1.0,
+    grabbedParticle: -1,
+    originalSize: 0.4
+};
+
+function analyzeHand(landmarks) {
+    const wrist = landmarks[0];
+    const midBase = landmarks[9];
+    const midTip = landmarks[12];
+    const indexTip = landmarks[8];
+    const thumbTip = landmarks[4];
+    const indexBase = landmarks[5];
+    const pinkyBase = landmarks[17];
+
+    const distBase = Math.hypot(midBase.x - wrist.x, midBase.y - wrist.y);
+    const distTip = Math.hypot(midTip.x - wrist.x, midTip.y - wrist.y);
+    const ratio = distTip / distBase;
+    
+    const pinchDist = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y);
+    // Gesto "OK" 👌 (pulgar e índice juntos formando círculo)
+const thumbIndexDist = Math.hypot(thumbTip.x - indexTip.x, thumbTip.y - indexTip.y);
+const isOK = thumbIndexDist < 0.06;
+    
+    // Detectar gesto "PEACE" ✌️ (índice y medio arriba, otros abajo)
+    const indexUp = indexTip.y < indexBase.y - 0.05;
+    const middleUp = landmarks[12].y < landmarks[9].y - 0.05;
+    const ringDown = landmarks[16].y > landmarks[13].y;
+    const pinkyDown = landmarks[20].y > landmarks[17].y;
+    const isPeace = indexUp && middleUp && ringDown && pinkyDown;
+    
+    // Calcular ángulo de rotación de la mano
+    const handAngle = Math.atan2(
+        pinkyBase.y - indexBase.y,
+        pinkyBase.x - indexBase.x
+    );
+    
+ return {
+    openness: ratio,
+    isPinching: pinchDist < 0.05,
+    isOK: isOK,  // NUEVO
+    isPeace: isPeace,
+    centerX: midBase.x,
+    centerY: midBase.y,
+    indexTip: indexTip,
+    handRotation: handAngle,
+    gesture: ratio < 0.85 ? 'fist' : ratio > 1.25 ? 'open' : 'neutral'
+};
+}
+
+// ===== VISIÓN ARTIFICIAL - MEDIAPIPE HANDS =====
+const video = document.getElementById('input-video');
+const canvasElement = document.getElementById('canvas-overlay');
+const canvasCtx = canvasElement.getContext('2d');
+// Variable para controlar el modo espejo
+let isMirrorMode = false;
+
+// Función para cambiar el modo espejo
+// Función para cambiar el modo espejo
+document.getElementById('btn-mirror').addEventListener('click', () => {
+    isMirrorMode = !isMirrorMode;
+    const btn = document.getElementById('btn-mirror');
+    const videoElement = document.getElementById('input-video');
+    const canvasOverlay = document.getElementById('canvas-overlay');
+    
+    if(isMirrorMode) {
+        btn.textContent = '🔄 Modo: Espejo';
+        videoElement.style.transform = 'scaleX(-1)';
+        canvasOverlay.style.transform = 'scaleX(-1)';
+    } else {
+        btn.textContent = '🔄 Modo: Normal';
+        videoElement.style.transform = 'scaleX(1)';
+        canvasOverlay.style.transform = 'scaleX(1)';
+    }
+});
+function resizeCanvas() {
+    canvasElement.width = video.videoWidth || 640;
+    canvasElement.height = video.videoHeight || 480;
+}
+
+const hands = new Hands({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+});
+
+hands.setOptions({
+    maxNumHands: 2,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.6,
+    minTrackingConfidence: 0.6
+});
+
+hands.onResults(results => {
+    document.getElementById('loading').style.display = 'none';
+    resizeCanvas();
+    
+    canvasCtx.save();
+    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+    
+    handData.count = results.multiHandLandmarks ? results.multiHandLandmarks.length : 0;
+    document.getElementById('hands-count').textContent = handData.count;
+    
+    if (results.multiHandLandmarks && results.multiHandedness) {
+        let leftHand = null;
+        let rightHand = null;
+        
+        for(let i = 0; i < results.multiHandLandmarks.length; i++) {
+            const hand = results.multiHandLandmarks[i];
+            const handedness = results.multiHandedness[i].label;
+            
+            // Ajustar detección según el modo espejo
+const isRightHand = isMirrorMode ? (handedness === 'Right') : (handedness === 'Left');
+            const displayColor = isRightHand ? '#ff00ff' : '#00d2ff';
+            
+            canvasCtx.fillStyle = displayColor;
+            for(let landmark of hand) {
+                canvasCtx.beginPath();
+                canvasCtx.arc(
+                    landmark.x * canvasElement.width,
+                    landmark.y * canvasElement.height,
+                    5, 0, 2 * Math.PI
+                );
+                canvasCtx.fill();
+            }
+            
+            canvasCtx.strokeStyle = displayColor;
+            canvasCtx.lineWidth = 2;
+            const connections = [
+                [0,1],[1,2],[2,3],[3,4],
+                [0,5],[5,6],[6,7],[7,8],
+                [0,9],[9,10],[10,11],[11,12],
+                [0,13],[13,14],[14,15],[15,16],
+                [0,17],[17,18],[18,19],[19,20]
+            ];
+            
+            for(let conn of connections) {
+                const start = hand[conn[0]];
+                const end = hand[conn[1]];
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(start.x * canvasElement.width, start.y * canvasElement.height);
+                canvasCtx.lineTo(end.x * canvasElement.width, end.y * canvasElement.height);
+                canvasCtx.stroke();
+            }
+            
+            const analyzed = analyzeHand(hand);
+            
+            if(isRightHand) {
+                rightHand = analyzed;
+                handData.right = analyzed;
+            } else {
+                leftHand = analyzed;
+                handData.left = analyzed;
+            }
+        }
+        
+if(leftHand) {
+    // MOVIMIENTO con menos sensibilidad
+    const yPos = (leftHand.centerY - 0.5) * -40;
+    const xPos = (leftHand.centerX - 0.5) * 40;
+    controlState.targetY = yPos;
+    controlState.targetX = xPos;
+    
+    // ROTACIÓN Z - Solo cuando haces gesto PEACE ✌️
+    if(leftHand.isPeace) {
+        controlState.targetRotationZ = isMirrorMode ? leftHand.handRotation * 1.2 : -leftHand.handRotation * 1.2;
+    }
+    // Si está haciendo puño o abierta, mantener la rotación actual
+    
+    // ESCALA: Solo con puño y mano abierta (SIN rotación Y)
+    if(leftHand.gesture === 'fist') {
+        controlState.targetScale = 0.5;
+    } else if(leftHand.gesture === 'open') {
+        controlState.targetScale = 2.5;
+    } else {
+        controlState.targetScale = 1.0;
+    }
+            
+            const rotationDegrees = Math.round((leftHand.handRotation * 180 / Math.PI) % 360);
+            
+            document.getElementById('left-gesture').textContent = 
+                leftHand.gesture.toUpperCase() + ' X:' + xPos.toFixed(1) + ' Y:' + yPos.toFixed(1) + ' 🔄' + rotationDegrees + '°';
+} else {
+    document.getElementById('left-gesture').textContent = 'No detectada';
+    controlState.targetY = 0;
+    controlState.targetX = 0;
+    // Mantener rotación actual cuando no hay mano
+    controlState.targetScale = 1.0;
+}
+        
+      // ===== CONTROL CON MANO DERECHA: EXTRACCIÓN DE PARTÍCULAS =====
+if(rightHand) {
+    if(rightHand.isPinching) {
+        if(controlState.grabbedParticle === -1) {
+            // Buscar partícula cercana
+            const screenX = (rightHand.indexTip.x - 0.5) * 2;
+            const screenY = -(rightHand.indexTip.y - 0.5) * 2;
+            
+            const raycaster = new THREE.Raycaster();
+            raycaster.params.Points.threshold = 2; // Aumentar área de detección
+            raycaster.setFromCamera(new THREE.Vector2(screenX, screenY), camera);
+            
+            const intersects = raycaster.intersectObject(particles);
+            
+            if(intersects.length > 0) {
+                controlState.grabbedParticle = intersects[0].index;
+                
+                // PINTAR DE ROJO
+                const colorIdx = controlState.grabbedParticle * 3;
+                colors[colorIdx] = 1;     // R
+                colors[colorIdx + 1] = 0; // G
+                colors[colorIdx + 2] = 0; // B
+                geometry.attributes.color.needsUpdate = true;
+                
+                // AGRANDAR PARTÍCULA
+                sizes[controlState.grabbedParticle] = 2.5;
+                geometry.attributes.size.needsUpdate = true;
+                
+                document.getElementById('grabbed-particle').textContent = 
+                    '#' + controlState.grabbedParticle;
+            }
+        }
+        
+        // MOVER PARTÍCULA AGARRADA
+        if(controlState.grabbedParticle !== -1) {
+            const screenX = (rightHand.indexTip.x - 0.5) * 80;
+            const screenY = (rightHand.indexTip.y - 0.5) * 60;
+            
+            const idx = controlState.grabbedParticle * 3;
+            targetPositions[idx] = screenX;
+            targetPositions[idx + 1] = screenY;
+            targetPositions[idx + 2] = 10; // Traerla al frente
+        }
+    } else {
+        // SOLTAR PARTÍCULA - Restaurar color y tamaño
+        if(controlState.grabbedParticle !== -1) {
+            // Mantener color ROJO (no volver a blanco)
+            // Si quieres que vuelva a blanco, descomenta estas líneas:
+            // const colorIdx = controlState.grabbedParticle * 3;
+            // colors[colorIdx] = 1;
+            // colors[colorIdx + 1] = 1;
+            // colors[colorIdx + 2] = 1;
+            // geometry.attributes.color.needsUpdate = true;
+            
+            // Restaurar tamaño original
+            sizes[controlState.grabbedParticle] = controlState.originalSize;
+            geometry.attributes.size.needsUpdate = true;
+            
+            controlState.grabbedParticle = -1;
+            document.getElementById('grabbed-particle').textContent = 'Ninguna';
+        }
+    }
+    
+    document.getElementById('right-gesture').textContent = 
+        (rightHand.isPinching ? '🤏 AGARRANDO' : 'ABIERTA');
+} else {
+    document.getElementById('right-gesture').textContent = 'No detectada';
+    
+    // Si pierdes la mano, soltar partícula
+    if(controlState.grabbedParticle !== -1) {
+        sizes[controlState.grabbedParticle] = controlState.originalSize;
+        geometry.attributes.size.needsUpdate = true;
+        controlState.grabbedParticle = -1;
+        document.getElementById('grabbed-particle').textContent = 'Ninguna';
+    }
+}
+        
+    } else {
+        document.getElementById('left-gesture').textContent = '-';
+        document.getElementById('right-gesture').textContent = '-';
+        controlState.targetY = 0;
+        controlState.targetX = 0;
+        controlState.targetRotationZ = 0;
+        controlState.targetScale = 1.0;
+        if(controlState.grabbedParticle !== -1) {
+            sizes[controlState.grabbedParticle] = controlState.originalSize;
+            geometry.attributes.size.needsUpdate = true;
+            controlState.grabbedParticle = -1;
+        }
+    }
+    
+    canvasCtx.restore();
+});
+
+// Iniciar cámara
+const cameraUtils = new Camera(video, {
+    onFrame: async () => {
+        await hands.send({image: video});
+    },
+    width: 640,
+    height: 480
+});
+cameraUtils.start();
+
+// ===== BUCLE DE ANIMACIÓN =====
+let frameCount = 0;
+
+function animate() {
+    requestAnimationFrame(animate);
+    frameCount++;
+// Suavizar transiciones
+controlState.positionY += (controlState.targetY - controlState.positionY) * 0.1;
+controlState.positionX += (controlState.targetX - controlState.positionX) * 0.1;
+controlState.rotationZ += (controlState.targetRotationZ - controlState.rotationZ) * 0.1;
+controlState.rotationY += (controlState.targetRotationY - controlState.rotationY) * 0.1;
+controlState.scale += (controlState.targetScale - controlState.scale) * 0.08;
+
+// Aplicar transformaciones
+particles.position.y = controlState.positionY;
+// Invertir posición X en modo espejo
+particles.position.x = isMirrorMode ? -controlState.positionX : controlState.positionX;
+particles.rotation.z = controlState.rotationZ;
+particles.scale.setScalar(controlState.scale);
+
+// En modo espejo, invertir la rotación Y completamente
+if(isMirrorMode) {
+    particles.rotation.y = -controlState.rotationY;
+} else {
+    particles.rotation.y = controlState.rotationY;
+}
+// Actualizar UI
+// Actualizar UI
+document.getElementById('pos-xy').textContent = 
+    controlState.positionX.toFixed(2) + ' / ' + controlState.positionY.toFixed(2);
+document.getElementById('rotation-z-value').textContent = 
+    Math.round((controlState.rotationZ * 180 / Math.PI) % 360) + '°';
+document.getElementById('rotation-y-value').textContent = 
+    Math.round((controlState.rotationY * 180 / Math.PI) % 360) + '°';
+document.getElementById('scale-value').textContent = controlState.scale.toFixed(2);
+    
+    // Interpolación de posiciones
+    const pos = geometry.attributes.position.array;
+    for(let i = 0; i < PARTICLE_COUNT * 3; i++) {
+        pos[i] += (targetPositions[i] - pos[i]) * 0.05;
+    }
+    geometry.attributes.position.needsUpdate = true;
+    
+    // Actualizar conexiones cada 3 frames
+    if(frameCount % 3 === 0 && currentShape === 'neural') {
+        updateNeuralConnections();
+    }
+    
+    // Rotar prismas
+    meshes.forEach(mesh => {
+        mesh.rotation.x += mesh.rotationSpeed.x;
+        mesh.rotation.y += mesh.rotationSpeed.y;
+        mesh.rotation.z += mesh.rotationSpeed.z;
+    });
+    
+    // Rotación automática sutil (removida para evitar conflicto)
+    // particles.rotation.z += 0.0005;
+    
+    renderer.render(scene, camera);
+}
+
+animate();
+
+// ===== RESPONSIVE =====
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Ocultar hint después de 10 segundos
+setTimeout(() => {
+    const hint = document.getElementById('gesture-hint');
+    if(hint) hint.style.display = 'none';
+}, 10000);
+
+        // CONTINÚA EN PARTE B...
+    </script>
+</body>
+</html>

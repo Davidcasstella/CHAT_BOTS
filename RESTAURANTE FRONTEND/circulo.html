@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido - Registro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            background: #000000;
+        }
+
+        /* Pantalla de Animación Inicial */
+        #welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: radial-gradient(ellipse at center, #0a0a1a 0%, #000000 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 1s ease, transform 1s ease;
+            overflow: hidden;
+        }
+
+        #welcome-screen.hide {
+            opacity: 0;
+            transform: scale(1.2);
+            pointer-events: none;
+        }
+
+        .canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #canvas3d {
+            width: 100%;
+            height: 100%;
+        }
+
+        .glow-effect {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255, 200, 100, 0.15) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.3;
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.3);
+                opacity: 0.6;
+            }
+        }
+
+        .welcome-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .brand-name {
+            font-size: 72px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f5af19 0%, #f12711 50%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            animation: fadeInScale 1s ease;
+            letter-spacing: 5px;
+            text-shadow: 0 0 30px rgba(255, 165, 0, 0.5);
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .tagline {
+            color: rgba(255, 200, 100, 0.8);
+            font-size: 20px;
+            font-weight: 300;
+            margin-bottom: 40px;
+            animation: fadeInUp 1s ease 0.3s both;
+            letter-spacing: 3px;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            animation: fadeInUp 1s ease 0.6s both;
+        }
+
+        .loading-bar {
+            width: 300px;
+            height: 3px;
+            background: rgba(255, 200, 100, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.3);
+        }
+
+        .loading-progress {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #f5af19 0%, #f12711 50%, #ff6b6b 100%);
+            animation: load 3.5s ease forwards;
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.8);
+        }
+
+        @keyframes load {
+            to { width: 100%; }
+        }
+
+        .loading-text {
+            color: rgba(255, 200, 100, 0.6);
+            font-size: 14px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        /* Estrellas de fondo */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 3px rgba(255, 255, 255, 0.8);
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* Contenedor del Formulario */
+        #form-container {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1s ease 0.5s, transform 1s ease 0.5s;
+            background: radial-gradient(ellipse at top, #0a0a1a 0%, #000000 100%);
+        }
+
+        #form-container.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .form-wrapper {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 200, 100, 0.2);
+            border-radius: 30px;
+            padding: 50px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5), 
+                        0 0 0 1px rgba(255, 165, 0, 0.1),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255, 165, 0, 0.1), transparent 30%);
+            animation: rotate 4s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes rotate {
+            to { transform: rotate(360deg); }
+        }
+
+        .form-content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 5px;
+            position: relative;
+        }
+
+        .tab-indicator {
+            position: absolute;
+            height: calc(100% - 10px);
+            width: calc(50% - 5px);
+            background: linear-gradient(135deg, #f5af19 0%, #f12711 100%);
+            border-radius: 12px;
+            transition: transform 0.3s ease;
+            top: 5px;
+            left: 5px;
+            box-shadow: 0 5px 20px rgba(255, 165, 0, 0.4);
+        }
+
+        .tabs[data-active="register"] .tab-indicator {
+            transform: translateX(100%);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .tab.active {
+            color: white;
+        }
+
+        .form-content {
+            display: none;
+        }
+
+        .form-content.active {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            color: white;
+            margin-bottom: 30px;
+            font-size: 32px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #f5af19;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 4px rgba(245, 175, 25, 0.1),
+                        0 5px 20px rgba(245, 175, 25, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #f5af19 0%, #f12711 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(245, 175, 25, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 30px 0;
+            color: rgba(255, 255, 255, 0.4);
+            position: relative;
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 35%;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+
+        .social-login {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .social-btn {
+            flex: 1;
+            padding: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: white;
+            font-size: 14px;
+        }
+
+        .social-btn:hover {
+            border-color: #f5af19;
+            background: rgba(245, 175, 25, 0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(245, 175, 25, 0.2);
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-top: 10px;
+        }
+
+        .forgot-password a {
+            color: #f5af19;
+            text-decoration: none;
+            font-size: 13px;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .forgot-password a:hover {
+            color: #f12711;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .brand-name {
+                font-size: 48px;
+            }
+            
+            .form-wrapper {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Pantalla de bienvenida animada -->
+    <div id="welcome-screen">
+        <div class="canvas-container">
+            <canvas id="canvas3d"></canvas>
+        </div>
+        <div class="glow-effect"></div>
+        <div class="welcome-content">
+            <h1 class="brand-name">SATURNO</h1>
+            <p class="tagline">Donde las Ideas Orbitan</p>
+            <div class="loading-container">
+                <div class="loading-bar">
+                    <div class="loading-progress"></div>
+                </div>
+                <span class="loading-text">Iniciando...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estrellas de fondo -->
+    <div class="stars" id="stars"></div>
+
+    <!-- Contenedor del formulario -->
+    <div id="form-container">
+        <div class="form-wrapper">
+            <div class="form-content-wrapper">
+                <div class="tabs" data-active="login">
+                    <div class="tab-indicator"></div>
+                    <div class="tab active" data-tab="login">Iniciar Sesión</div>
+                    <div class="tab" data-tab="register">Registrarse</div>
+                </div>
+
+                <!-- Formulario de Login -->
+                <div class="form-content active" id="login">
+                    <h2>Bienvenido de Vuelta</h2>
+                    <form>
+                        <div class="input-group">
+                            <label>Email</label>
+                            <input type="email" placeholder="tu@email.com" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Contraseña</label>
+                            <input type="password" placeholder="••••••••" required>
+                        </div>
+                        <div class="forgot-password">
+                            <a href="#">¿Olvidaste tu contraseña?</a>
+                        </div>
+                        <br>
+                        <button type="submit" class="btn">Iniciar Sesión</button>
+                    </form>
+                    <div class="divider">o continúa con</div>
+                    <div class="social-login">
+                        <button class="social-btn">Google</button>
+                        <button class="social-btn">Facebook</button>
+                    </div>
+                </div>
+
+                <!-- Formulario de Registro -->
+                <div class="form-content" id="register">
+                    <h2>Crea tu Cuenta</h2>
+                    <form>
+                        <div class="input-group">
+                            <label>Nombre completo</label>
+                            <input type="text" placeholder="Juan Pérez" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Email</label>
+                            <input type="email" placeholder="tu@email.com" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Contraseña</label>
+                            <input type="password" placeholder="••••••••" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Confirmar contraseña</label>
+                            <input type="password" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="btn">Crear Cuenta</button>
+                    </form>
+                    <div class="divider">o regístrate con</div>
+                    <div class="social-login">
+                        <button class="social-btn">Google</button>
+                        <button class="social-btn">Facebook</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Animación de Saturno con anillos
+        const canvas = document.getElementById('canvas3d');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        
+        // Planeta Saturno
+        class Saturn {
+            constructor() {
+                this.radius = 120;
+                this.x = centerX;
+                this.y = centerY;
+                this.rotation = 0;
+            }
+            
+            draw(time) {
+                this.rotation += 0.001;
+                
+                // Sombra del planeta
+                const shadowGradient = ctx.createRadialGradient(
+                    this.x - 20, this.y + 20, 0,
+                    this.x, this.y, this.radius * 1.2
+                );
+                shadowGradient.addColorStop(0, 'rgba(0, 0, 0, 0.5)');
+                shadowGradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = shadowGradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius * 1.2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Planeta con textura
+                const gradient = ctx.createRadialGradient(
+                    this.x - 30, this.y - 30, 10,
+                    this.x, this.y, this.radius
+                );
+                gradient.addColorStop(0, '#f5d76e');
+                gradient.addColorStop(0.3, '#f0c661');
+                gradient.addColorStop(0.6, '#e8a639');
+                gradient.addColorStop(1, '#d68910');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Bandas del planeta
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                
+                for (let i = 0; i < 5; i++) {
+                    const y = -this.radius + (i * this.radius / 2.5);
+                    const wave = Math.sin(time * 0.001 + i) * 5;
+                    
+                    ctx.strokeStyle = `rgba(0, 0, 0, ${0.1 + i * 0.02})`;
+                    ctx.lineWidth = 8;
+                    ctx.beginPath();
+                    
+                    for (let x = -this.radius; x <= this.radius; x += 2) {
+                        const yPos = y + Math.sin(x * 0.1 + time * 0.001) * 3 + wave;
+                        const distFromCenter = Math.sqrt(x * x + yPos * yPos);
+                        
+                        if (distFromCenter < this.radius) {
+                            if (x === -this.radius) {
+                                ctx.moveTo(x, yPos);
+                            } else {
+                                ctx.lineTo(x, yPos);
+                            }
+                        }
+                    }
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+                
+                // Brillo del planeta
+                const highlightGradient = ctx.createRadialGradient(
+                    this.x - 40, this.y - 40, 0,
+                    this.x - 40, this.y - 40, 60
+                );
+                highlightGradient.addColorStop(0, 'rgba(255, 255, 200, 0.4)');
+                highlightGradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = highlightGradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // Partículas de los anillos
+        class RingParticle {
+            constructor(ring) {
+                this.ring = ring;
+                this.angle = Math.random() * Math.PI * 2;
+                this.distance = ring.innerRadius + Math.random() * (ring.outerRadius - ring.innerRadius);
+                this.speed = 0.0005 + Math.random() * 0.001;
+                this.size = Math.random() * 2.5 + 0.5;
+                this.opacity = 0.3 + Math.random() * 0.7;
+                this.color = this.getColor();
+                this.z = (Math.random() - 0.5) * 10;
+            }
+            
+            getColor() {
+                const colors = [
+                    { r: 220, g: 180, b: 120 },
+                    { r: 200, g: 160, b: 100 },
+                    { r: 180, g: 140, b: 80 },
+                    { r: 160, g: 120, b: 60 }
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            update() {
+                this.angle += this.speed;
+                if (this.angle > Math.PI * 2) this.angle -= Math.PI * 2;
+            }
+            
+            draw() {
+                const tilt = 0.3;
+                const x = centerX + Math.cos(this.angle) * this.distance;
+                const y = centerY + Math.sin(this.angle) * this.distance * tilt + this.z;
+                
+                const distanceFromCenter = Math.sqrt(
+                    Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2)
+                );
+                
+                // Calcular si está detrás del planeta
+                const angleFromCenter = Math.atan2(y - centerY, x - centerX);
+                const yBehind = Math.sin(this.angle) < 0;
+                
+                let opacity = this.opacity;
+                if (distanceFromCenter < 120 && !yBehind) {
+                    opacity = 0; // Ocultar si está frente al planeta
+                } else if (distanceFromCenter < 120 && yBehind) {
+                    opacity *= 0.3; // Atenuar si está detrás
+                }
+                
+                if (opacity > 0) {
+                    ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(x, y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Brillo adicional
+                    if (this.size > 1.5) {
+                        ctx.fillStyle = `rgba(255, 255, 200, ${opacity * 0.3})`;
+                        ctx.beginPath();
+                        ctx.arc(x, y, this.size * 0.5, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+        }
+        
+        // Anillos de Saturno
+        const rings = [
+            { innerRadius: 140, outerRadius: 180, particles: [] },
+            { innerRadius: 185, outerRadius: 240, particles: [] },
+            { innerRadius: 245, outerRadius: 290, particles: [] },
+            { innerRadius: 295, outerRadius: 320, particles: [] }
+        ];
+        
+        // Crear partículas para cada anillo
+        rings.forEach(ring => {
+            const particleCount = Math.floor((ring.outerRadius - ring.innerRadius) * 15);
+            for (let i = 0; i < particleCount; i++) {
+                ring.particles.push(new RingParticle(ring));
+            }
+        });
+        
+        const saturn = new Saturn();
+        
+        function animate() {
+            const time = Date.now();
+            
+            ctx.fillStyle = 'rgba(10, 10, 26, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Dibujar anillos detrás del planeta
+            rings.forEach(ring => {
+                ring.particles.forEach(particle => {
+                    if (Math.sin(particle.angle) < 0) {
+                        particle.update();
+                        particle.draw();
+                    }
+                });
+            });
+            
+            // Dibujar el planeta
+            saturn.draw(time);
+            
+            // Dibujar anillos delante del planeta
+            rings.forEach(ring => {
+                ring.particles.forEach(particle => {
+                    if (Math.sin(particle.angle) >= 0) {
+                        particle.update();
+                        particle.draw();
+                    }
+                });
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+        
+        // Crear estrellas de fondo
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 200; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            star.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            starsContainer.appendChild(star);
+        }
+
+        // Animación de entrada
+        setTimeout(() => {
+            document.getElementById('welcome-screen').classList.add('hide');
+            setTimeout(() => {
+                document.getElementById('form-container').classList.add('show');
+            }, 500);
+        }, 4000);
+
+        // Cambio entre tabs
+        const tabs = document.querySelectorAll('.tab');
+        const formContents = document.querySelectorAll('.form-content');
+        const tabsContainer = document.querySelector('.tabs');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                tabsContainer.dataset.active = targetTab;
+                
+                formContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === targetTab) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // Prevenir envío de formularios
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                alert('¡Formulario enviado! (Esto es una demo)');
+            });
+        });
+    </script>
+</body>
+</html>
